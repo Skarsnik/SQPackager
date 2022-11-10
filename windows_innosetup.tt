@@ -1,0 +1,20 @@
+; This a file was generated from a template from SQPackager
+
+[Setup]
+AppName=%%APP_NAME%%
+AppVersion=%%APP_VERSION%%
+WizardStyle=modern
+DefaultDirName={autopf}\%%APP_NAME%%
+DefaultGroupName=%%APP_NAME%%
+UninstallDisplayIcon={app}\%%APP_EXE%%
+Compression=lzma2
+SolidCompression=yes
+CompressionThreads=auto
+%%ARCH_SPECIFIC%%
+LicenseFile=%%LICENCE_FILE%%
+
+[Files]
+#include "listforinnosetupwindows.txt"
+
+[Icons]
+Name: "{group}\%%APP_NAME%%"; Filename: "{app}\%%APP_EXE%%"
