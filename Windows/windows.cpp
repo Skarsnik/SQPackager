@@ -9,6 +9,7 @@
 #include <sqpackager.h>
 #include <basestuff.h>
 #include <runner.h>
+#include <QTemporaryDir>
 
 enum WindowsArch {
     X86,
@@ -803,8 +804,14 @@ void setMSVCEnv(Runner& runner, MSVCVersion& vers, WindowsArch arch)
     QString firstPath = runner.env().value("PATH");
     //println(runner.env().value("PATH"));
     //return ;
-    QString sPackagerDir = "D:/Project/SkarsnikQtCommon/SQPackager";
-    bool ok = runner.run(sPackagerDir + "/Windows/startvcvargs.bat",
+    QTemporaryDir   tempDir;
+    if (!tempDir.isValid())
+    {
+        error_and_exit("Could not create a temporary directory to store a .bat file need to set MSVC env");
+    }
+    QString startvcarg = tempDir.filePath("startvcargs.bat");
+    QFile::copy(":/Windows/startvcvargs.bat", startvcarg);
+    bool ok = runner.run(startvcarg,
                          QStringList() << vers.vsPath + "Common7/Tools/VsDevCmd.bat" << "/clean_env");
     QTextStream out(runner.getStdout());
     while (!out.atEnd())
@@ -853,7 +860,7 @@ void setMSVCEnv(Runner& runner, MSVCVersion& vers, WindowsArch arch)
         if (msV == vers.visualStudioVersion)
             toolVersion = dirName;
     }
-    ok = runner.run(sPackagerDir + "/Windows/startvcvargs.bat", QStringList() << vers.vsPath + "/VC/Auxiliary/Build/vcvarsall.bat "
+    ok = runner.run(startvcarg, QStringList() << vers.vsPath + "/VC/Auxiliary/Build/vcvarsall.bat "
                     << "-vcvars_ver=" + toolVersion << vsArchName.value(arch));
     if (!ok)
     {

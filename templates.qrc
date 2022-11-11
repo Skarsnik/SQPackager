@@ -2,5 +2,6 @@
     <qresource prefix="/">
         <file>testtemplate.tt</file>
         <file>Windows/windows_innosetup.tt</file>
+        <file>Windows/startvcvargs.bat</file>
     </qresource>
 </RCC>
