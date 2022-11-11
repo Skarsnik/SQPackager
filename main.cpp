@@ -25,8 +25,8 @@ int main(int argc, char *argv[])
                           {"version", "version", "Force the given version for the project"},
                           {"gen-flatpak", "Generate a flatpak manifest"},
                           {"gen-windows", "Check and generate Windows related stuff"},
-                          {"windows-build-path", "path", "Set the base directory to build on Windows"},
-                          {"windows-deploy-path", "path", "Set the base directory to deploy on Windows"}
+                          {"windows-build-path", "path", "Set the base directory where compilation takes place"},
+                          {"windows-deploy-path", "path", "Set the base directory where deployement takes place"}
                       });
     //return a.exec();
     parser.process(a);

@@ -4,7 +4,7 @@ This document explains how SQPackager builds the Windows releases
 
 # Prerequisite
 
-SQPackager only builds for MSVC and does not provide static build. Static builds require bnuilding Qt from sources
+SQPackager only builds for MSVC and does not provide static build. Static builds require building Qt from sources
 and since that is a costly operation it's not easy to integrate into a CLI.
 
 The build process assumes you are building from an `AMD64` architecture.
