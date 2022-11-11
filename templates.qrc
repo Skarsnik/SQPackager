@@ -1,6 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>testtemplate.tt</file>
-        <file>windows_innosetup.tt</file>
+        <file>Windows/windows_innosetup.tt</file>
     </qresource>
 </RCC>

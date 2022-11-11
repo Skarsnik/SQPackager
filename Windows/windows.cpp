@@ -357,7 +357,7 @@ void    generateInstaller(const ProjectDefinition& project, const WindowsBuild& 
         fileList.write(QString("Source: \"%1\"; DestDir: \"{app}\"\n").arg(file.fileName()).toLocal8Bit());
     }*/
     fileList.close();
-    QString innoFileStr = useTemplateFile(":/windows_innosetup.tt", map);
+    QString innoFileStr = useTemplateFile(":/Windows/windows_innosetup.tt", map);
     QString issPath = build.deployFullPath + "/innosetup.iss";
     QFile innoFile(issPath);
     if (!innoFile.open(QIODevice::WriteOnly | QIODevice::Text))
