@@ -13,7 +13,7 @@ SOURCES += \
         main.cpp \
         print.cpp \
         runner.cpp \
-        Windows\windows.cpp
+        Windows/windows.cpp
 
 # Default rules for deployment.
 #qnx: target.path = /tmp/$${TARGET}/bin

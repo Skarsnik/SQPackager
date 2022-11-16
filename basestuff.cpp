@@ -31,6 +31,10 @@ ProjectDefinition    getProjectDescription(QString path)
     QJsonDocument jsondoc = QJsonDocument::fromJson(json, err);
     if (err != nullptr)
         error_and_exit("Error parsing the description file : " + err->errorString());
+    if (jsondoc.isNull())
+    {
+        error_and_exit("Invalid Json file somehow");
+    }
     QJsonObject obj = jsondoc.object();
     println("Project name is : " + obj["name"].toString() + "\n");
     ProjectDefinition def;
@@ -43,6 +47,7 @@ ProjectDefinition    getProjectDescription(QString path)
     if (obj.contains("pro-file"))
         def.proFile = basePath + "/" + obj["pro-file"].toString();
     def.basePath = basePath;
+    def.qtMajorVersion = "auto";
     if (obj.contains("qt-major-version"))
         def.qtMajorVersion = obj["qt-major-version"].toString();
     return def;
