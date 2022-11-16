@@ -9,6 +9,13 @@ and since that is a costly operation it's not easy to integrate into a CLI.
 
 The build process assumes you are building from an `AMD64` architecture.
 
+# Thing you should add to your project
+
+You need a RC file that qmake will use to set your application icon and adding
+`RC_FILE = myfile.rc` to your .pro file. You also need a `.ico` file.
+
+An installer icon file
+
 # Detection
 
 SQPackager tries to find the following :
