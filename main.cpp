@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
                           {"version", "version", "Force the given version for the project"},
                           {"gen-flatpak", "Generate a flatpak manifest"},
                           {"gen-windows", "Check and generate Windows related stuff"},
+                          {"build", "type", "Build the selected type"},
                           {"windows-build-path", "path", "Set the base directory where compilation takes place"},
                           {"windows-deploy-path", "path", "Set the base directory where deployement takes place"}
                       });
@@ -52,5 +53,8 @@ int main(int argc, char *argv[])
         genFlatPakFile(project);
     if (parser.isSet("gen-windows"))
         genWindows(project);
-    buildWindows(project);
+    if (parser.isSet("build") && parser.value("build") == "windows")
+        buildWindows(project);
+    if (parser.isSet("build") && parser.value("build") == "flatpak")
+        buildFlatPak(project);
 }
