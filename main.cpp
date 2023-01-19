@@ -22,12 +22,13 @@ int main(int argc, char *argv[])
 
     parser.addPositionalArgument("sqproject.json", "A path to a sqproject.json file");
     parser.addOptions({
-                          {"version", "version", "Force the given version for the project"},
-                          {"gen-flatpak", "Generate a flatpak manifest"},
-                          {"gen-windows", "Check and generate Windows related stuff"},
-                          {"build", "type", "Build the selected type"},
-                          {"windows-build-path", "path", "Set the base directory where compilation takes place"},
-                          {"windows-deploy-path", "path", "Set the base directory where deployement takes place"}
+                    {"version", "version", "Force the given version for the project"},
+                    {"gen-flatpak", "Generate a flatpak manifest"},
+                    {"gen-windows", "Check and generate Windows related stuff"},
+                    {"build", "type", "Build the selected type"},
+                    {"windows-build-path", "path", "Set the base directory where compilation takes place"},
+                    {"windows-deploy-path", "path", "Set the base directory where deployement takes place"},
+                    {"gen-desktoprc", "Generate a .desktop file"}
                       });
     //return a.exec();
     parser.process(a);
@@ -57,4 +58,11 @@ int main(int argc, char *argv[])
         buildWindows(project);
     if (parser.isSet("build") && parser.value("build") == "flatpak")
         buildFlatPak(project);
+    if (parser.isSet("gen-desktoprc"))
+    {
+        if (checkDesktopRC(project))
+            generateLinuxDesktopRC(project);
+        else
+            error_and_exit("The project description is not suited to generate a .desktop file. Please follow the previously error");
+    }
 }

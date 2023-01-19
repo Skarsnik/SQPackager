@@ -1,0 +1,9 @@
+echo "Generated make install"
+install -v -D build-dir/%%PROJECT_TARGET%% /app/bin/%%FLATPAK_TARGET%%
+echo "Installing icon"
+install -v -D %%PROJECT_ICON_FILE /app/share/icons/hicolor/%%ICON_SIZE%%/apps/%%FLATPAK_ICON_NAME%%
+echo "Installing .desktop file"
+cp %%DESKTOP_FILE%% %%FLATPAK_DESKTOP_FILE%%
+desktop-file-edit --set-key=Icon --set-value=%%FLATPAK_ICON_BASENAME%% %%FLATPAK_DESKTOP_FILE%%
+install -v -d /app/share/applications/
+install -v -Dm644 %%FLATPAK_DESKTOP_FILE%% /app/share/applications/${FLATPAK_ID}.desktop

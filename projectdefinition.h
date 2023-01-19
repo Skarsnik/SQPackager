@@ -1,6 +1,7 @@
 #ifndef PROJECTDEFINITION_H
 #define PROJECTDEFINITION_H
 
+#include <QSize>
 #include <QString>
 #include <QStringList>
 
@@ -11,6 +12,7 @@ struct ProjectDefinition
     QString     description;
     QStringList qtModules;
     QString     icon;
+    QSize       iconSize;
     QString     org;
     QString     basePath;
     QString     flatpakFilesystemPermission;
@@ -19,6 +21,8 @@ struct ProjectDefinition
     QString     readmeFile;
     QString     licenseFile;
     QString     qtMajorVersion;
+    QString     desktopIcon;
+    QStringList categories;
 };
 
 #endif // PROJECTDEFINITION_H

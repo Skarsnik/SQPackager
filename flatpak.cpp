@@ -1,4 +1,5 @@
 #include <QFile>
+#include <QFileInfo>
 #include <QMap>
 #include <projectdefinition.h>
 #include <basestuff.h>
@@ -26,6 +27,7 @@ void    genFlatPakFile(const ProjectDefinition& project)
         mapping["KDE_SDK_VERSION"] = "6.4";
     }
     mapping["PROJECT_PATH"] = project.basePath;
+    mapping["BINARY_NAME"] = project.name; // TODO check this
     mapping["FLATPACK_FILE_PERM"] = project.flatpakFilesystemPermission.isEmpty() ? "xdg-config" : project.flatpakFilesystemPermission;
     QFile manifest(project.basePath + "/" + fullName + ".yml");
     if (!manifest.open(QIODevice::WriteOnly | QIODevice::Text))
@@ -35,6 +37,21 @@ void    genFlatPakFile(const ProjectDefinition& project)
     QString content = useTemplateFile(":/flatpak/flatpak_template.tt", mapping);
     manifest.write(content.toLocal8Bit());
     println("Flatpak file generated : " + manifest.fileName());
+}
+
+void    genBuildAndInstall(const ProjectDefinition& project)
+{
+    QMap<QString, QString> mapping;
+    QString fullName = project.org + "." + project.name;
+    mapping["PROJECT_FILE"] = project.proFile;
+    mapping["PROJECT_TARGET"] = project.name;
+    mapping["FLATPAK_TARGET"] = project.name;
+    mapping["PROJECT_ICON_FILE"] = project.desktopIcon;
+    QFileInfo fi(project.basePath + "/" + project.desktopIcon);
+    mapping["FLATPAK_ICON_FILE"] = project.org + "." + project.name + "." + fi.suffix();
+    mapping["DESKTOP_FILE"] = project.deskopFile;
+    mapping["FLATPAK_DESKTOP_FILE"] = fullName + "." + "desktop";
+    mapping["FLATPAK_ICON_BASENAME"] = fullName;
 }
 
 void    buildFlatPak(const ProjectDefinition& project)

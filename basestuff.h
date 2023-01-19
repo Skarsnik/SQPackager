@@ -9,5 +9,7 @@ ProjectDefinition   getProjectDescription(QString path = "");
 void                findQtModules(ProjectDefinition& def);
 void                findVersion(ProjectDefinition& proj);
 QString             useTemplateFile(QString rcPath, QMap<QString, QString> mapping);
+bool                generateLinuxDesktopRC(ProjectDefinition& proj);
+bool                checkDesktopRC(ProjectDefinition& proj);
 
 #endif // BASESTUFF_H

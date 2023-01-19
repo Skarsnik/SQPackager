@@ -2,6 +2,7 @@
 #include <QJsonDocument>
 #include <QFile>
 #include <QJsonObject>
+#include <QJsonArray>
 #include <QTextStream>
 
 #include <basestuff.h>
@@ -38,6 +39,17 @@ ProjectDefinition    getProjectDescription(QString path)
     QJsonObject obj = jsondoc.object();
     println("Project name is : " + obj["name"].toString() + "\n");
     ProjectDefinition def;
+    def.desktopIcon = "";
+    if (obj.contains("desktop-icon"))
+        def.desktopIcon = obj.value("desktop-icon").toString();
+    if (obj.contains("desktop-categories"))
+    {
+        for (auto entry : obj.value("desktop-categories").toArray().toVariantList())
+        {
+            def.categories.append(entry.toString());
+        }
+    }
+
     def.name = obj["name"].toString();
     def.shortDescription = obj["short-description"].toString();
     def.description = obj["description"].toString();
@@ -172,3 +184,4 @@ QString    useTemplateFile(QString rcPath, QMap<QString, QString> mapping)
     }
     return toret;
 }
+

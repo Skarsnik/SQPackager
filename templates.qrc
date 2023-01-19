@@ -4,5 +4,6 @@
         <file>Windows/windows_innosetup.tt</file>
         <file>Windows/startvcvargs.bat</file>
         <file>flatpak/flatpak_template.tt</file>
+        <file>desktop_template.tt</file>
     </qresource>
 </RCC>
