@@ -9,6 +9,7 @@
 #include <runner.h>
 #include <sqpackager.h>
 #include <basestuff.h>
+#include <desktoprc.h>
 
 QTextStream cout(stdout);
 
@@ -28,7 +29,7 @@ int main(int argc, char *argv[])
                     {"build", "type", "Build the selected type"},
                     {"windows-build-path", "path", "Set the base directory where compilation takes place"},
                     {"windows-deploy-path", "path", "Set the base directory where deployement takes place"},
-                    {"gen-desktoprc", "Generate a .desktop file"}
+                    {"gen-desktop", "Generate a .desktop file"}
                       });
     //return a.exec();
     parser.process(a);
@@ -46,23 +47,43 @@ int main(int argc, char *argv[])
     {
         findVersion(project);
     }
+
+    // Windows Stuff
     if (parser.isSet("windows-build-path"))
         gOptions.windowsBuildPath = parser.value("windows-build-path");
     if (parser.isSet("windows-deploy-path"))
         gOptions.windowsDeployPath = parser.value("windows-deploy-path");
-    if (parser.isSet("gen-flatpak"))
-        genFlatPakFile(project);
     if (parser.isSet("gen-windows"))
         genWindows(project);
     if (parser.isSet("build") && parser.value("build") == "windows")
         buildWindows(project);
-    if (parser.isSet("build") && parser.value("build") == "flatpak")
-        buildFlatPak(project);
-    if (parser.isSet("gen-desktoprc"))
+
+    if (parser.isSet("gen-desktop"))
     {
-        if (checkDesktopRC(project))
+        if (checkDesktopRC(project, true))
             generateLinuxDesktopRC(project);
         else
             error_and_exit("The project description is not suited to generate a .desktop file. Please follow the previously error");
+    }
+    // FlatPak stuff
+    if (parser.isSet("gen-flatpak"))
+    {
+        if (!checkFlatPak(project, true))
+        {
+            error_and_exit("The project definition is not suited to generate a flatpak file");
+        }
+        setDesktopRC(project);
+        generateFlatPakFile(project);
+    }
+    if (parser.isSet("build") && parser.value("build") == "flatpak")
+    {
+        if (!checkFlatPak(project))
+        {
+            error_and_exit("The project definition is not suited to generate a flatpak file");
+        }
+        setDesktopRC(project);
+        if (project.flatpakFile.isEmpty())
+            generateFlatPakFile(project);
+        buildFlatPak(project);
     }
 }

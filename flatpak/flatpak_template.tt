@@ -13,8 +13,9 @@ modules:
       builddir: true
       no-make-install: true
       build-commands:
-        - "sh sqpackager_build.sh"
-        - "sh sqpackager_install.sh"
+        - "sh flatpak_sqpackager_build.sh"
+        - "sh flatpak_sqpackager_install.sh"
       sources:
        - type: dir
          path: %%PROJECT_PATH%%
+      %%SUBDIR%%

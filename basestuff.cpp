@@ -51,6 +51,7 @@ ProjectDefinition    getProjectDescription(QString path)
     }
 
     def.name = obj["name"].toString();
+    def.targetName = def.name;
     def.shortDescription = obj["short-description"].toString();
     def.description = obj["description"].toString();
     def.icon = obj["icon"].toString();
@@ -59,9 +60,17 @@ ProjectDefinition    getProjectDescription(QString path)
     if (obj.contains("pro-file"))
         def.proFile = basePath + "/" + obj["pro-file"].toString();
     def.basePath = basePath;
+    def.projectBasePath = basePath;
+    if (obj.contains("project-base-path"))
+    {
+        QFileInfo fi(basePath + "/" + obj.value("project-base-path").toString());
+        def.projectBasePath = fi.absolutePath();
+    }
     def.qtMajorVersion = "auto";
     if (obj.contains("qt-major-version"))
         def.qtMajorVersion = obj["qt-major-version"].toString();
+    if (obj.contains("target-name"))
+        def.targetName = obj["target-name"].toString();
     return def;
 }
 
@@ -146,6 +155,22 @@ void    findVersion(ProjectDefinition& proj)
     println("Project version is " + proj.version);
 }
 
+QString    checkForFile(const QString path, const QRegularExpression searchPattern)
+{
+    QDir dir(path);
+    for (auto entry : dir.entryList())
+    {
+
+        QRegularExpressionMatch match = searchPattern.match(entry);
+        //println(QString("Checking : ") + entry + " -- " + (match.hasMatch() ? "true " : "false"));
+        if (match.hasMatch())
+        {
+            return entry;
+        }
+    }
+    return QString();
+}
+
 const QRegularExpression varEntry("%%([\\w_]+)%%");
 
 QString    useTemplateFile(QString rcPath, QMap<QString, QString> mapping)
@@ -174,6 +199,8 @@ QString    useTemplateFile(QString rcPath, QMap<QString, QString> mapping)
                 if (mapping.contains(key))
                 {
                     generatedLine.append(mapping.value(key));
+                } else {
+                    println("Template warning: Found key in template file that does not have a value: " + key);
                 }
             }
             generatedLine.append(line.mid(indexStart));

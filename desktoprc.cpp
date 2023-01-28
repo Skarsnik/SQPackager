@@ -1,14 +1,37 @@
+#include <QMap>
+#include <QFile>
 #include <desktoprc.h>
 #include <basestuff.h>
+#include <print.h>
 #include <runner.h>
+#include <QFileInfo>
 
-bool    checkDesktopRC(ProjectDefinition& proj)
+bool    checkDesktopRC(const ProjectDefinition& proj, bool bypass)
 {
+    if (!bypass &&
+        (!proj.desktopFile.isEmpty()
+        || !checkForFile(proj.basePath, QRegularExpression(".+\\.desktop$")).isEmpty())
+       )
+    {
+        println("Project already has a .desktop file, you can still use --gen-desktop if you want to have sqpackager to regenerate a new one");
+        if (proj.desktopIcon.isEmpty())
+        {
+            if (!proj.icon.isEmpty())
+            {
+                println("The project description does not specify the icon file name for the desktop file <desktop-icon> field. Assusming <icon> is the desktop icon");
+                return true;
+            } else {
+                println("The project description does not specify any <icon> or <desktop-icon>. One of this field is needed even whith a provided .desktop file since it's need to be able to install the write file");
+                return false;
+            }
+        }
+        return true;
+    }
     println("Checking if the project description file fill the requierment to generate a valid .desktop file");
     bool toret = true;
     if (proj.shortDescription.isEmpty())
     {
-        println("Your project need a short description <short-description>. It will appear as a description of your soltware on the DE menu");
+        println("Your project need a short description <short-description>. It will appear as a description of your software on the DE menu");
         toret = false;
     }
     if (proj.categories.isEmpty())
@@ -24,23 +47,48 @@ bool    checkDesktopRC(ProjectDefinition& proj)
             toret = false;
         } else {
             println("Using the <icon> entry as desktop icon, you can specify a <desktop-icon> if you want a specific other icon");
-            proj.desktopIcon = proj.icon;
         }
     }
     return toret;
 }
 
+void    setDesktopRC(ProjectDefinition& proj)
+{
+    if (!proj.desktopFile.isEmpty())
+    {
+        if (proj.desktopIcon.isEmpty())
+            proj.desktopIcon = proj.icon;
+        setIconSize(proj);
+        return ;
+    }
+    QString file = checkForFile(proj.basePath, QRegularExpression(".+\\.desktop$"));
+    if (!file.isEmpty())
+    {
+        proj.desktopFile = file;
+        if (proj.desktopIcon.isEmpty())
+            proj.desktopIcon = proj.icon;
+
+    } else {
+        generateLinuxDesktopRC(proj);
+    }
+    setIconSize(proj);
+}
+
 bool    generateLinuxDesktopRC(ProjectDefinition& proj)
 {
     QString desktopFilePath = proj.basePath + "/" + proj.name + ".desktop";
+    if (proj.desktopIcon.isEmpty())
+        proj.desktopIcon = proj.icon;
     QMap<QString, QString> mapping;
     mapping["NAME"] = proj.name;
     mapping["COMMENT"] = proj.shortDescription;
     mapping["EXEC"] = proj.name;
-    mapping["ICON"] = proj.desktopIcon;
+    QFileInfo fi(proj.basePath + "/" + proj.desktopFile);
+    mapping["ICON"] = fi.fileName();
     mapping["CATEGORIES"] = proj.categories.join(";");
     QString desktopString = useTemplateFile(":/desktop_template.tt", mapping);
     println("Creating .desktop file : " + desktopFilePath);
+    proj.desktopFile = proj.name + ".desktop";
     QFile desktopFile(desktopFilePath);
     if (!desktopFile.open(QIODevice::WriteOnly))
     {
@@ -57,6 +105,10 @@ void    setIconSize(ProjectDefinition& proj)
     bool ok = run.run("identify", QStringList() << proj.basePath + "/" + proj.desktopIcon);
     if (!ok)
         error_and_exit("Could not run identify on the desktop icon file. Do you have imagemagicks installed?");
-    QStringList plop = run.getStdout().split(" ");
-    proj.iconSize = QSize(plop[2].split("x")[0], plop[2].split("x")[1]);
+    QStringList plop;
+    for (QByteArray p : run.getStdout().split(' '))
+    {
+        plop.append(QString::fromLocal8Bit(p));
+    }
+    proj.iconSize = QSize(plop[2].split("x")[0].toInt(), plop[2].split("x")[1].toInt());
 }

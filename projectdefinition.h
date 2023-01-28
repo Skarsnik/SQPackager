@@ -15,14 +15,19 @@ struct ProjectDefinition
     QSize       iconSize;
     QString     org;
     QString     basePath;
+    QString     projectBasePath;
     QString     flatpakFilesystemPermission;
+    QString     flatpakFile;
+    QString     flatpakName;
     QString     proFile;
     QString     version;
     QString     readmeFile;
     QString     licenseFile;
     QString     qtMajorVersion;
     QString     desktopIcon;
+    QString     desktopFile;
     QStringList categories;
+    QString     targetName;
 };
 
 #endif // PROJECTDEFINITION_H

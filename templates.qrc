@@ -5,5 +5,7 @@
         <file>Windows/startvcvargs.bat</file>
         <file>flatpak/flatpak_template.tt</file>
         <file>desktop_template.tt</file>
+        <file>flatpak/sqpackager_build.tt</file>
+        <file>flatpak/sqpackager_install.tt</file>
     </qresource>
 </RCC>

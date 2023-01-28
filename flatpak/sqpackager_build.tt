@@ -1,8 +1,8 @@
 #!/bin/sh -x
-#This file is need since flatpak does not provide a way to specify qmake arguments
+#This file is needed since flatpak does not provide a way to specify qmake arguments
 set -o xtrace
-mkdir -v build-dir
-cd build-dir
-qmake DEFINES+="SQPROJECT_LINUX_INSTALL" DEFINES+="SQPROJECT_FLATPAK_BUILD" DEFINES+="SQPROJECT_INSTALL_PREFIX=/app/" CONFIG+="release no_batch" ../%%PROJECT_FILE%%
+mkdir -v flatpak-build-dir
+cd flatpak-build-dir
+qmake CONFIG+=release DEFINES+="SQPROJECT_LINUX_INSTALL" DEFINES+="SQPROJECT_FLATPAK_BUILD" DEFINES+="SQPROJECT_INSTALL_PREFIX=/app/" CONFIG+="release no_batch" ../%%PROJECT_FILE%%
 make
 cd -

@@ -13,7 +13,8 @@ SOURCES += \
         main.cpp \
         print.cpp \
         runner.cpp \
-        Windows/windows.cpp
+        Windows/windows.cpp \
+        desktoprc.cpp
 
 # Default rules for deployment.
 #qnx: target.path = /tmp/$${TARGET}/bin
@@ -25,6 +26,7 @@ HEADERS += \
     print.h \
     projectdefinition.h \
     runner.h \
+    desktoprc.h \
     sqpackager.h
 
 RESOURCES += templates.qrc

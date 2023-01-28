@@ -9,7 +9,8 @@ struct  PackagerOptions
     QString windowsDeployPath;
 };
 
-void    genFlatPakFile(const ProjectDefinition& project);
+bool    checkFlatPak(const ProjectDefinition project, bool bypass = false);
+void    generateFlatPakFile(ProjectDefinition& project);
 void    buildFlatPak(const ProjectDefinition& project);
 
 void    genWindows(ProjectDefinition& project);
