@@ -108,11 +108,20 @@ void    findQtModules(ProjectDefinition& def)
         while (!proFile.atEnd())
         {
             QString line = proFile.readLine();
+#if QT_VERSION_MAJOR == 6
+#include <QRegularExpression>
+            const QRegularExpression qtDef("QT\\s+\\+=");
+            const QRegularExpression blankExp("\\s+");
+            if (qtDef.match(line).hasMatch())
+            {
+#else
             QRegExp qtDef("QT\\s+\\+=");
+            const QRegExp blankExp("\\s+");
             if (qtDef.indexIn(line) != -1)
             {
+#endif
                 QString stringDef = line.split("+=").at(1);
-                QStringList qtmodule = stringDef.split(QRegExp("\\s+"));
+                QStringList qtmodule = stringDef.split(blankExp);
                 def.qtModules = qtmodule;
                 break;
             }
