@@ -71,6 +71,8 @@ ProjectDefinition    getProjectDescription(QString path)
         def.qtMajorVersion = obj["qt-major-version"].toString();
     if (obj.contains("target-name"))
         def.targetName = obj["target-name"].toString();
+    if (obj.contains("translations-dir"))
+        def.translationDir = obj["translations-dir"].toString();
     return def;
 }
 

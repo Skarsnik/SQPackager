@@ -200,6 +200,8 @@ static void deployExtras(ProjectDefinition& project, const WindowsBuild& build);
 static void deployQt(Runner& runner, const ProjectDefinition& project, WindowsBuild& build);
 static void createRelease(const ProjectDefinition& proj, const WindowsBuild& build);
 static void generateInstaller(const ProjectDefinition& project, const WindowsBuild& build);
+static void buildLocalization(Runner& runner, const ProjectDefinition& project, WindowsBuild& buildInfo);
+
 
 extern PackagerOptions gOptions;
 
@@ -233,18 +235,21 @@ void    buildWindows(ProjectDefinition& project)
     }
     for (WindowsBuild& build : builds)
     {
+        if (build.arch == ARM64)
+            break;
         println(build.toString());
         Runner runnerBuild(true);
         buildProject(runnerBuild, project, build);
         deployExtras(project, build);
         deployQt(runnerBuild, project, build);
+        if (project.translationDir.isEmpty() == false)
+            buildLocalization(runnerBuild, project, build);
         if (build.standalone == false)
         {
             generateInstaller(project, build);
         } else {
             createRelease(project, build);
         }
-        //break;
     }
 }
 
@@ -410,6 +415,24 @@ void    deployExtras(ProjectDefinition& project, const WindowsBuild& build)
             println("Did not find a License file, copying <" + fi.fileName() + "> to the deploy path");
             QFile::copy(fi.absoluteFilePath(), build.deployFullPath + "/" + fi.fileName() + optExt);
             project.licenseFile = build.deployFullPath + "/" + fi.fileName() + optExt;
+        }
+    }
+}
+
+void    buildLocalization(Runner& runner, const ProjectDefinition& project, WindowsBuild& buildInfo)
+{
+    QDir deployDir(buildInfo.deployFullPath);
+    println("Building Localization files");
+    deployDir.mkdir("i18n");
+    runner.run("lrelease", QStringList() << project.proFile);
+    println("Deploying Localization files");
+    QDir translationDir(project.basePath + "/" + project.translationDir);
+    for (auto file : translationDir.entryInfoList())
+    {
+        if (file.suffix() == "qm")
+        {
+            println("Copying " + file.fileName());
+            QFile::copy(file.absoluteFilePath(), buildInfo.deployFullPath + "/i18n/" + file.fileName());
         }
     }
 }

@@ -28,6 +28,7 @@ struct ProjectDefinition
     QString     desktopFile;
     QStringList categories;
     QString     targetName;
+    QString     translationDir;
 };
 
 #endif // PROJECTDEFINITION_H
