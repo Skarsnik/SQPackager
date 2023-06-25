@@ -253,7 +253,7 @@ void    createRelease(const ProjectDefinition& proj, const WindowsBuild& build)
     //tar.exe -a -cf Test.zip Test
     Runner runner(true);
 
-    println("Creating piko.zip");
+    println("Creating standalone release archives");
     QDir deployDir(build.deployBasePath);
     deployDir.cd("windows_deploy");
     QString zipFileName = build.releaseNameFull + ".zip";
@@ -269,8 +269,9 @@ void    createRelease(const ProjectDefinition& proj, const WindowsBuild& build)
         QFile::rename(deployDir.absolutePath() + "/" + dirToCompress, build.deployFullPath);
         error_and_exit("Error trying to create the zip file");
     }
-    if (!stuff.sevenZipPath.isEmpty())
+    if (stuff.sevenZipPath.isEmpty() == false)
     {
+        println("Creating 7zip file");
         ok = runner.run(stuff.sevenZipPath + "/7z.exe", deployDir.absolutePath(), QStringList() << "a" << "-t7z" << build.deployFullPath + "/../" + zip7FileName << dirToCompress);
         println(runner.getStdout());
         QFile::rename(deployDir.absolutePath() + "/" + dirToCompress, build.deployFullPath);
@@ -287,7 +288,9 @@ void    createRelease(const ProjectDefinition& proj, const WindowsBuild& build)
 void    deployQt(Runner& runner, const ProjectDefinition& project, WindowsBuild& build)
 {
     QStringList args;
-    args << "--no-translations" << "--no-system-d3d-compiler" << "--no-opengl" << "--no-webkit" << "--no-webkit2" << "--release";
+    args << "--no-translations" << "--no-system-d3d-compiler" << "--no-opengl" << "--release";
+    if (build.qt.version.majorVersion() == 5)
+        args << "--no-webkit" << "--no-webkit2";
     QDir deployDir(build.deployFullPath);
     QString firstExe;
     for (const QFileInfo& fi : deployDir.entryInfoList())
@@ -299,8 +302,7 @@ void    deployQt(Runner& runner, const ProjectDefinition& project, WindowsBuild&
             build.executables << fi.fileName();
         }
     }
-    runner.run(build.qt.path + "/bin/windeployqt.exe", build.deployFullPath, args << firstExe);
-    println(runner.getStdout());
+    runner.runWithOut(build.qt.path + "/bin/windeployqt.exe", args << firstExe, build.deployFullPath);
 
     // Qt deploy is cute but this need to go
     QFile::remove(build.deployFullPath + "/" + "opengl32sw.dll");
@@ -623,7 +625,7 @@ static QMap<WindowsArch, WindowsBuild*> pickQtVersion(const ProjectDefinition& p
     {
         if ((qt5Only && qtVer.version.majorVersion() == 5) ||
             (qt6Only && qtVer.version.majorVersion() == 6) ||
-             project.qtMajorVersion.isEmpty())
+             project.qtMajorVersion == "auto")
         {
             //println("Qt version : " + qtVer.toString());
             if (!maxQtVersions.contains(qtVer.arch) ||
