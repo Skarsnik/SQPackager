@@ -796,7 +796,17 @@ void    checkMSVCVersion()
     {
         if (msDir.fileName().contains("20"))
         {
-            QDir vcDir(msDir.absoluteFilePath() + "/Community/VC/Redist/MSVC");
+            QString gVersion;
+            if (QFile::exists(msDir.absoluteFilePath() + "/Community"))
+            {
+                gVersion = "Community";
+            }
+            if (QFile::exists(msDir.absoluteFilePath() + "/Enterprise"))
+            {
+                gVersion = "Enterprise";
+            }
+
+            QDir vcDir(msDir.absoluteFilePath() + "/" + gVersion + "/VC/Redist/MSVC");
             for (auto vcInfo : vcDir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot))
             {
                 auto match = msvcRegex.match(vcInfo.fileName());
@@ -819,7 +829,7 @@ void    checkMSVCVersion()
                         newVers.archs << WindowsArch::X64;
                     if (msvcDir.exists("arm64"))
                         newVers.archs << WindowsArch::ARM64;
-                    newVers.vsPath = msDir.absoluteFilePath() + "/Community/";
+                    newVers.vsPath = msDir.absoluteFilePath() + "/" + gVersion + "/";
                     stuff.msvcVersions << newVers;
                 }
             }
