@@ -18,10 +18,18 @@ enum WindowsArch {
 };
 
 const QMap<WindowsArch, QString> vsArchName =
-{{X86, "amd64_x86"},
- {X64, "amd64"},
- {ARM64, "amd64_arm"}};
+{
+    {X86, "amd64_x86"},
+    {X64, "amd64"},
+    {ARM64, "amd64_arm"}
+};
 
+const QMap<WindowsArch, QString> archToString =
+{
+    {X86, "x86"},
+    {X64, "x64"},
+    {ARM64, "arm64"}
+};
 
 struct QtVersion
 {
@@ -30,13 +38,7 @@ struct QtVersion
     quint32         vsVersion;
     WindowsArch     arch;
     QString         toString() const {
-        QString archString;
-        if (arch == X86)
-            archString = "x86";
-        if (arch == X64)
-            archString = "x64";
-        if (arch == ARM64)
-            archString = "arm64";
+        QString archString = archToString[arch];
         return "Version: " + version.toString() + " - Located at : " + path + " MSVC " + QString::number(vsVersion) + " " + archString;
     }
 };
@@ -68,7 +70,14 @@ struct WindowsStuff
     QString             jomExe;
 };
 
+struct ReleaseFiles
+{
+    QString standaloneZip;
+    QString standalone7Zip;
+    QString innoSetup;
+};
 
+static QMap<WindowsArch, ReleaseFiles> releaseFiles;
 static WindowsStuff stuff;
 
 struct WindowsBuild
@@ -76,12 +85,7 @@ struct WindowsBuild
     WindowsBuild(const ProjectDefinition& proj, WindowsArch _arch, bool _standalone)
     {
         arch = _arch;
-        if (arch == X86)
-            archString = "x86";
-        if (arch == X64)
-            archString = "x64";
-        if (arch == ARM64)
-            archString = "arm64";
+        archString = archToString[arch];
         standalone = _standalone;
         m_projectBasePath = proj.basePath;
         setPath();
@@ -264,6 +268,37 @@ void    buildWindows(ProjectDefinition& project)
             createRelease(project, build);
         }
     }
+    println("Release files are the following");
+    for (auto plop : releaseFiles)
+    {
+        println("Standalone zip  :" + QDir::toNativeSeparators(plop.standaloneZip));
+        println("Standalone 7zip :" + QDir::toNativeSeparators(plop.standalone7Zip));
+        println("Inno Setup file :" + QDir::toNativeSeparators(plop.innoSetup));
+    }
+    if (QProcessEnvironment::systemEnvironment().contains("GITHUB_OUTPUT"))
+    {
+        QFile githubOutput(QProcessEnvironment::systemEnvironment().value("GITHUB_OUTPUT"));
+        if (githubOutput.open(QIODevice::Text | QIODevice::Append))
+        {
+            for (WindowsArch arch : releaseFiles.keys())
+            {
+                ReleaseFiles& plop = releaseFiles[arch];
+                QString nativeFilePath = QDir::toNativeSeparators(plop.standaloneZip);
+                githubOutput.write(QString("sqpackager_win32_" + archToString[arch] + "_standalone_zip=" + nativeFilePath + "\n").toLatin1());
+                if (plop.standalone7Zip.isEmpty() == false)
+                {
+                    nativeFilePath = QDir::toNativeSeparators(plop.standalone7Zip);
+                    githubOutput.write(QString("sqpackager_win32_" + archToString[arch] + "_standalone_7zip=" + nativeFilePath + "\n").toLatin1());
+                }
+                if (plop.innoSetup.isEmpty() == false)
+                {
+                    nativeFilePath = QDir::toNativeSeparators(plop.innoSetup);
+                    githubOutput.write(QString("sqpackager_win32_" + archToString[arch] + "_innosetup=" + nativeFilePath + "\n").toLatin1());
+                }
+            }
+        }
+        githubOutput.close();
+    }
 }
 
 void    createRelease(const ProjectDefinition& proj, const WindowsBuild& build)
@@ -287,6 +322,7 @@ void    createRelease(const ProjectDefinition& proj, const WindowsBuild& build)
         QFile::rename(deployDir.absolutePath() + "/" + dirToCompress, build.deployFullPath);
         error_and_exit("Error trying to create the zip file");
     }
+    releaseFiles[build.arch].standaloneZip = build.deployFullPath + "/" + zipFileName;
     if (stuff.sevenZipPath.isEmpty() == false)
     {
         println("Creating 7zip file");
@@ -298,6 +334,7 @@ void    createRelease(const ProjectDefinition& proj, const WindowsBuild& build)
             println(runner.getStderr());
             error_and_exit("Error trying to create the 7zip file");
         }
+        releaseFiles[build.arch].standalone7Zip = build.deployFullPath + "/" + zip7FileName;
     } else {
         QFile::rename(deployDir.absolutePath() + "/" + dirToCompress, build.deployFullPath);
     }
@@ -389,6 +426,7 @@ void    generateInstaller(const ProjectDefinition& project, const WindowsBuild& 
     innoFile.close();
     Runner runner;
     runner.runWithOut(stuff.innosetupPath + "/ISCC.exe", QStringList() << "/O" + build.deployBasePath + "/windows_deploy/" << "/F" + build.releaseNameFull + "-setup" << issPath, build.deployFullPath);
+    releaseFiles[build.arch].innoSetup = build.deployBasePath + "/windows_deploy/" + build.releaseNameFull + "-setup.exe";
 }
 
 /*
