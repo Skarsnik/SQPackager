@@ -559,13 +559,28 @@ void findQtVersion()
     if (true)
     {
         print("Trying to find QMake in Qt installation");
-        if (!QFileInfo::exists("C:\\Qt"))
+        if ((QFileInfo::exists("C:\\Qt")
+             || QProcessEnvironment::systemEnvironment().contains("Qt6_DIR")
+             || QProcessEnvironment::systemEnvironment().contains("Qt5_DIR")) == false)
         {
             printlnOk("", false);
-            error_and_exit("Can't find Qt installation (searching in C:\\Qt). You can use the option -qmake-path to specify the qmake executable to use");
+            error_and_exit("Can't find Qt installation (searching in C:\\Qt or QT_ROOT_DIR). You can use the option -qmake-path to specify the qmake executable to use");
         }
         printlnOk("", true);
-        QDir qtDir("C:\\Qt");
+        QDir qtDir;
+        if (QFileInfo::exists("C:\\Qt"))
+            qtDir = QDir("C:\\Qt");
+        else
+        {
+            if (QProcessEnvironment::systemEnvironment().contains("Qt6_DIR"))
+            {
+                qtDir = QDir(QProcessEnvironment::systemEnvironment().value("Qt6_DIR") + "/../../");
+            }
+            if (QProcessEnvironment::systemEnvironment().contains("Qt5_DIR"))
+            {
+                qtDir = QDir(QProcessEnvironment::systemEnvironment().value("Qt5_DIR") + "/../../");
+            }
+        }
         qtDir.setFilter(QDir::Dirs | QDir::NoDotAndDotDot);
         const QRegularExpression RegVers("\\d\\.\\d");
         auto qtFiles = qtDir.entryInfoList();
