@@ -83,13 +83,8 @@ struct WindowsBuild
         if (arch == ARM64)
             archString = "arm64";
         standalone = _standalone;
-        deployDirName = QString() + archString + "_" + (standalone ? "standalone" : "insaller");
-        deployPath = "windows_deploy/" + deployDirName;
-        buildPath = "windows_build/" + archString + "_" + (standalone ? "standalone" : "insaller");
-        deployBasePath = (stuff.deployBasePath.isEmpty() ? proj.basePath : stuff.deployBasePath);
-        buildBasePath = (stuff.buildBasePath.isEmpty() ? proj.basePath : stuff.buildBasePath);
-        deployFullPath = deployBasePath + "/" + deployPath;
-        buildFullPath = buildBasePath + "/" + buildPath;
+        m_projectBasePath = proj.basePath;
+        setPath();
         releaseNameFull = proj.name + "-" + proj.version + "-win32-" + archString;
         releaseBaseName = proj.name + "-" + proj.version;
     }
@@ -97,6 +92,24 @@ struct WindowsBuild
     QString     archString;
     MSVCVersion msvc;
     QtVersion   qt;
+    private:
+    void    setPath()
+    {
+        deployDirName = QString() + archString + "_" + (standalone ? "standalone" : "installer");
+        deployPath = "windows_deploy/" + deployDirName;
+        buildPath = "windows_build/" + archString + "_" + (standalone ? "standalone" : "installer");
+        deployBasePath = (stuff.deployBasePath.isEmpty() ? m_projectBasePath : stuff.deployBasePath);
+        buildBasePath = (stuff.buildBasePath.isEmpty() ? m_projectBasePath : stuff.buildBasePath);
+        deployFullPath = deployBasePath + "/" + deployPath;
+        buildFullPath = buildBasePath + "/" + buildPath;
+    }
+    QString m_projectBasePath;
+    public:
+    void    setStandalone(bool _standalone)
+    {
+        standalone = _standalone;
+        setPath();
+    }
     bool        standalone;
     QString     deployBasePath;
     QString     buildBasePath;
@@ -228,9 +241,9 @@ void    buildWindows(ProjectDefinition& project)
     {
         it.next();
         WindowsBuild build = *it.value();
-        build.standalone = false;
+        build.setStandalone(false);
         builds << build;
-        build.standalone = true;
+        build.setStandalone(true);
         builds << build;
     }
     for (WindowsBuild& build : builds)
