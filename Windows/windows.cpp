@@ -322,7 +322,7 @@ void    createRelease(const ProjectDefinition& proj, const WindowsBuild& build)
         QFile::rename(deployDir.absolutePath() + "/" + dirToCompress, build.deployFullPath);
         error_and_exit("Error trying to create the zip file");
     }
-    releaseFiles[build.arch].standaloneZip = build.deployFullPath + "/" + zipFileName;
+    releaseFiles[build.arch].standaloneZip = build.deployBasePath + "//windows_deploy/" + zipFileName;
     if (stuff.sevenZipPath.isEmpty() == false)
     {
         println("Creating 7zip file");
@@ -334,7 +334,7 @@ void    createRelease(const ProjectDefinition& proj, const WindowsBuild& build)
             println(runner.getStderr());
             error_and_exit("Error trying to create the 7zip file");
         }
-        releaseFiles[build.arch].standalone7Zip = build.deployFullPath + "/" + zip7FileName;
+        releaseFiles[build.arch].standalone7Zip = build.deployBasePath + "/windows_deploy/" + zip7FileName;
     } else {
         QFile::rename(deployDir.absolutePath() + "/" + dirToCompress, build.deployFullPath);
     }
