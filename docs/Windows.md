@@ -4,17 +4,15 @@ This document explains how SQPackager builds the Windows releases
 
 # Prerequisite
 
-SQPackager only builds for MSVC and does not provide static build. Static builds require building Qt from sources
+SQPackager only builds for MSVC and does not provide static builds for now. Static builds require building Qt from sources
 and since that is a costly operation it's not easy to integrate into a CLI.
-
-The build process assumes you are building from an `AMD64` architecture.
 
 # Thing you should add to your project
 
-You need a RC file that qmake will use to set your application icon and adding
-`RC_FILE = myfile.rc` to your .pro file. You also need a `.ico` file.
+You need an RC file. QMake will use this file to set your application icon. You also need to add
+`RC_FILE = myfile.rc` to your .pro file.
 
-An installer icon file
+An installer icon file is a nice bonus if you plan on release an installer
 
 # Detection
 
@@ -22,7 +20,7 @@ SQPackager tries to find the following :
 
 - All you Microsoft Visual Studio Installation
 - All the MSVC versions inside these Visual Studio installations
-- All Qt version
+- All Qt versions: It searches in `C:\Qt` or in the context of github action in the `Qt6_DIR` or `Qt5_DIR` env variable.
 
 Then it tries to match the highest Qt version with the highest compatible MSVC version for each architecture
 
@@ -53,13 +51,20 @@ Note that the qmake call receives a `DEFINES+=SQPROJECT_WIN32_STANDALONE 1` or `
 
 If you did not provide an install target in your .pro, SQPackager will copy the Exe found in the build directory, then the Readme and Licence file to the deploy directory.
 
-windeployqt is then run like this:
+It will then release the file defined in your `sqproject.json` file
 
+The windeployqt tool provided by Qt to pick up the right DLL is then run like this:
+
+For Qt5:
 ```
 windeployqt.exe mainexe.exe --no-translations --no-system-d3d-compiler --no-opengl --no-webkit --no-webkit2 --release
 ```
+For Qt6:
+```
+windeployqt.exe mainexe.exe --no-translations --no-system-d3d-compiler --no-opengl --release
+```
 
-SQPackager then removes the following file
+SQPackager  then removes the following file
 
 ```
 opengl32sw.dll
