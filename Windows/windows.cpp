@@ -205,6 +205,11 @@ void    genWindows(ProjectDefinition& project)
     }
 }
 
+static bool copy_file(QString src, QString dest)
+{
+
+}
+
 static void checkJom();
 static void findQtVersion();
 static QMap<WindowsArch, WindowsBuild *> pickQtVersion(const ProjectDefinition& project);
@@ -254,7 +259,7 @@ void    buildWindows(ProjectDefinition& project)
     {
         if (build.arch == ARM64)
             break;
-        println(build.toString());
+        //println(build.toString());
         Runner runnerBuild(true);
         buildProject(runnerBuild, project, build);
         deployExtras(project, build);
@@ -468,6 +473,31 @@ void    deployExtras(ProjectDefinition& project, const WindowsBuild& build)
             project.licenseFile = build.deployFullPath + "/" + fi.fileName() + optExt;
         }
     }
+    if (!project.releaseFiles.isEmpty())
+        println("Deploying release files defined in the project");
+    for (ReleaseFile file : project.releaseFiles)
+    {
+        bool ok;
+        println("Deploying " + file.name + "- From : " + file.source + " - To : " + file.destination);
+        QString fullDest = deployDir.absolutePath() + "/" + file.destination;
+        if (file.type == Local)
+        {
+            ok = QFile::copy(projectDir.absolutePath() + "/" + file.source, fullDest);
+            if (!ok)
+            {
+                error_and_exit("Could not copy one of the project file : " + file.name + " - " + file.source);
+            }
+        }
+        if (file.type == Remote)
+        {
+            Runner run(true);
+            run.runWithOut("curl.exe", QStringList() << "-LJ" << "-o" << fullDest << "--url" << file.source);
+            if (QFileInfo::exists(fullDest) == false)
+            {
+                error_and_exit("Error getting the remote file " + file.name + "from " + file.source);
+            }
+        }
+    }
 }
 
 void    buildLocalization(Runner& runner, const ProjectDefinition& project, WindowsBuild& buildInfo)
@@ -540,8 +570,10 @@ void    buildProject(Runner& runner, const ProjectDefinition& project, WindowsBu
     if (buildInfo.standalone)
     {
         sqprojectOptions << "DEFINES+=SQPROJECT_WIN32_STANDALONE 1";
+        sqprojectOptions << "DEFINES+=SQPROJECT_STANDALONE 1";
     } else {
         sqprojectOptions << "DEFINES+=SQPROJECT_WIN32_INSTALL 1";
+        sqprojectOptions << "DEFINES+=SQPROJECT_INSTALL 1";
     }
     if (!sqprojectOptions.isEmpty())
         qmakeOptions.append(sqprojectOptions);

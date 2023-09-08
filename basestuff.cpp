@@ -10,6 +10,8 @@
 #include <runner.h>
 #include <print.h>
 
+static void    handleFiles(ProjectDefinition& def, QJsonObject& obj);
+
 void    error_and_exit(QString error)
 {
    fprintf(stderr, "%s\n", error.toLocal8Bit().constData());
@@ -74,9 +76,29 @@ ProjectDefinition    getProjectDescription(QString path)
         def.targetName = obj["target-name"].toString();
     if (obj.contains("translations-dir"))
         def.translationDir = obj["translations-dir"].toString();
+    if (obj.contains("files"))
+        handleFiles(def, obj);
     return def;
 }
 
+void    handleFiles(ProjectDefinition& def, QJsonObject& obj)
+{
+    QJsonObject fileObj = obj["files"].toObject();
+    for (const QString& key : fileObj.keys())
+    {
+        QString value = fileObj[key].toString();
+        ReleaseFile relFile;
+        relFile.name = QFileInfo(key).baseName();
+        relFile.destination = key;
+        relFile.type = Local;
+        relFile.source = value;
+        if (value.startsWith("http://") || value.startsWith("https://"))
+        {
+            relFile.type = Remote;
+        }
+        def.releaseFiles.append(relFile);
+    }
+}
 
 void    findQtModules(ProjectDefinition& def)
 {

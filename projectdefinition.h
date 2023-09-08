@@ -5,6 +5,20 @@
 #include <QString>
 #include <QStringList>
 
+enum ReleaseFileType {
+    Local,
+    Remote,
+    Generated
+};
+
+struct ReleaseFile
+{
+    ReleaseFileType type;
+    QString name;
+    QString source;
+    QString destination;
+};
+
 struct ProjectDefinition
 {
     QString     name;
@@ -29,6 +43,7 @@ struct ProjectDefinition
     QStringList categories;
     QString     targetName;
     QString     translationDir;
+    QList<ReleaseFile>       releaseFiles;
 };
 
 #endif // PROJECTDEFINITION_H
