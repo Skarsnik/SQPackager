@@ -7,5 +7,7 @@
         <file>desktop_template.tt</file>
         <file>flatpak/sqpackager_build.tt</file>
         <file>flatpak/sqpackager_install.tt</file>
+        <file>debian/control_template.tt</file>
+        <file>debian/rules_template.tt</file>
     </qresource>
 </RCC>

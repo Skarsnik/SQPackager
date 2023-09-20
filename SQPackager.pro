@@ -9,6 +9,7 @@ DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs depr
 
 SOURCES += \
         basestuff.cpp \
+        debian/debian.cpp \
         flatpak.cpp \
         main.cpp \
         print.cpp \
@@ -32,5 +33,7 @@ HEADERS += \
 RESOURCES += templates.qrc
 
 DISTFILES += \
+    debian/control_template.tt \
+    debian/rules_template.tt \
     flatpak/installenv.sh
 

@@ -1,0 +1,12 @@
+Source: %%SOURCE_NAME%%
+Maintainer: %%MAINTAINER_NAME%% <%%MAINTAINER_MAIL%%>
+Section: misc
+Priority: optional
+Standards-Version: 3.9.2
+Build-Depends: debhelper (>= 9)
+
+Package: %%PACKAGE_NAME%%
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: %%SHORT_DESCRIPTION%%
+%%LONG_DESCRIPTION%%
