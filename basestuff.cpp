@@ -139,20 +139,28 @@ void    findQtModules(ProjectDefinition& def)
 void    findVersion(ProjectDefinition& proj)
 {
     std::function<QString()> gitFind([basePath=proj.basePath] {
-        Runner run;
-        bool ok = run.run("git", basePath, QStringList() << "describe" << "--tags" << "--exact-match");
+        Runner run(true);
+        bool ok = run.run("git", basePath, QStringList() << "status");
+        if (!ok)
+            return QString();
+        // Checking if we are in a tag
+        ok = run.run("git", basePath, QStringList() << "describe" << "--tags" << "--exact-match");
         if (ok)
         {
             QString out = run.getStdout();
-            if (out.isEmpty())
-            {
-                ok = run.run("git", basePath, QStringList() << "rev-parse" << "--verify master");
-                return out.left(8);
-            } else {
-                return out.trimmed();
-            }
+            return out.trimmed();
         }
-        return QString();
+        // If not, get the nice tag-numberofcommit-commit format git gave us
+        ok = run.run("git", basePath, QStringList() << "describe" << "--tags");
+        if (ok)
+        {
+            QString out = run.getStdout();
+            return out.trimmed();
+        }
+        // If no tag, use the last commit hash first 8 characters
+        ok = run.run("git", basePath, QStringList() << "rev-parse" << "--verify master");
+        QString out = run.getStdout();
+        return out.left(8);
     });
     if (!proj.version.isEmpty())
     {

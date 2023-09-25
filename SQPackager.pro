@@ -17,11 +17,6 @@ SOURCES += \
         Windows/windows.cpp \
         desktoprc.cpp
 
-# Default rules for deployment.
-#qnx: target.path = /tmp/$${TARGET}/bin
-#else: unix:!android: target.path = /opt/$${TARGET}/bin
-#!isEmpty(target.path): INSTALLS += target
-
 HEADERS += \
     basestuff.h \
     print.h \
@@ -29,6 +24,10 @@ HEADERS += \
     runner.h \
     desktoprc.h \
     sqpackager.h
+
+static {
+    LIBS += -lWindowsApp
+}
 
 RESOURCES += templates.qrc
 
