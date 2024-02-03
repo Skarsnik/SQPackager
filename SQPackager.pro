@@ -15,7 +15,8 @@ SOURCES += \
         print.cpp \
         runner.cpp \
         Windows/windows.cpp \
-        desktoprc.cpp
+        desktoprc.cpp \
+        unix.cpp
 
 HEADERS += \
     basestuff.h \
@@ -34,5 +35,6 @@ RESOURCES += templates.qrc
 DISTFILES += \
     debian/control_template.tt \
     debian/rules_template.tt \
-    flatpak/installenv.sh
+    flatpak/installenv.sh \
+    unix_install.tt
 

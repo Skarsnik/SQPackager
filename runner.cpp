@@ -96,6 +96,13 @@ QProcessEnvironment Runner::env() const
     return m_process.processEnvironment();
 }
 
+void Runner::addEnv(const QString &name, const QString &value)
+{
+    auto env = m_process.processEnvironment();
+    env.insert(name, value);
+    m_process.setProcessEnvironment(env);
+}
+
 void Runner::setEnv(QProcessEnvironment env)
 {
     m_process.setProcessEnvironment(env);

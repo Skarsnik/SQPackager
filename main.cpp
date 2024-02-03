@@ -26,10 +26,12 @@ int main(int argc, char *argv[])
                     {"version", "version", "Force the given version for the project"},
                     {"gen-flatpak", "Generate a flatpak manifest"},
                     {"gen-windows", "Check and generate Windows related stuff"},
+                    {"gen-debian", "Check and generate Debian files"},
                     {"build", "type", "Build the selected type"},
                     {"windows-build-path", "path", "Set the base directory where compilation takes place"},
                     {"windows-deploy-path", "path", "Set the base directory where deployement takes place"},
-                    {"gen-desktop", "Generate a .desktop file"}
+                    {"gen-desktop", "Generate a .desktop file"},
+                    {"gen-unix", "Generate a .desktop file and an unix installer"}
                       });
     //return a.exec();
     parser.process(a);
@@ -41,12 +43,14 @@ int main(int argc, char *argv[])
         project = getProjectDescription(parser.positionalArguments().at(0));
     }
     findQtModules(project);
+    findLicense(project);
     if (parser.isSet("version"))
         project.version = parser.value("version");
     else
     {
         findVersion(project);
     }
+
     // Windows Stuff
     if (parser.isSet("windows-build-path"))
         gOptions.windowsBuildPath = parser.value("windows-build-path");
@@ -64,6 +68,17 @@ int main(int argc, char *argv[])
         else
             error_and_exit("The project description is not suited to generate a .desktop file. Please follow the previously error");
     }
+    if (parser.isSet("gen-unix"))
+    {
+        if (checkDesktopRC(project, true))
+            generateLinuxDesktopRC(project);
+        else
+            error_and_exit("The project description is not suited to generate a .desktop file. Please follow the previously error");
+        setDesktopRC(project);
+        generateUnixInstallFile(project);
+        //exit(0);
+    }
+
     // FlatPak stuff
     if (parser.isSet("gen-flatpak"))
     {

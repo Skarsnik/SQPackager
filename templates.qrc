@@ -9,5 +9,7 @@
         <file>flatpak/sqpackager_install.tt</file>
         <file>debian/control_template.tt</file>
         <file>debian/rules_template.tt</file>
+        <file>unix_install.tt</file>
+        <file>debian/copyright_template.tt</file>
     </qresource>
 </RCC>

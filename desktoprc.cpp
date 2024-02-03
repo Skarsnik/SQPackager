@@ -58,6 +58,8 @@ void    setDesktopRC(ProjectDefinition& proj)
     {
         if (proj.desktopIcon.isEmpty())
             proj.desktopIcon = proj.icon;
+        QFileInfo fi(proj.basePath + "/" + proj.desktopIcon);
+        proj.desktopIconNormalizedName = proj.org + "." + proj.name + "." + fi.suffix();
         setIconSize(proj);
         return ;
     }
@@ -71,6 +73,8 @@ void    setDesktopRC(ProjectDefinition& proj)
     } else {
         generateLinuxDesktopRC(proj);
     }
+    QFileInfo fi(proj.basePath + "/" + proj.desktopIcon);
+    proj.desktopIconNormalizedName = proj.org + "." + proj.name + "." + fi.suffix();
     setIconSize(proj);
 }
 
@@ -84,7 +88,7 @@ bool    generateLinuxDesktopRC(ProjectDefinition& proj)
     mapping["COMMENT"] = proj.shortDescription;
     mapping["EXEC"] = proj.name;
     QFileInfo fi(proj.basePath + "/" + proj.desktopFile);
-    mapping["ICON"] = fi.fileName();
+    mapping["ICON"] = proj.desktopIconNormalizedName;
     mapping["CATEGORIES"] = proj.categories.join(";");
     QString desktopString = useTemplateFile(":/desktop_template.tt", mapping);
     println("Creating .desktop file : " + desktopFilePath);

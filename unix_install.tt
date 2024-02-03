@@ -1,0 +1,24 @@
+#!/bin/sh
+#=SQPACKAGER %%SQPACKAGER_VERSION%%
+#This is a generated file by SQPackager
+#Remove the =SQPACKAGER line for sqpackager to not regenerate this file
+echo "Install file"
+PREFIX="/usr/local/"
+PROJECT_TARGET=%%PROJECT_TARGET%%
+if [ "$1" = '--prefix' ]; then
+    PREFIX=$2
+fi
+INSTALL_PREFIX=$PREFIX
+echo "Installing target binary"
+
+install -v -D $PROJECT_TARGET $INSTALL_PREFIX/bin/$PROJECT_TARGET
+
+DESKTOP_FILE=%%DESKTOP_FILE%%
+NORMALIZED_DESKTOP_FILE_NAME=%%NORMALIZED_DESKTOP_FILE_NAME%%
+
+echo "Installing .desktop file"
+
+install -v -d $INSTALL_PREFIX/share/applications/
+install -v -Dm644 $DESKTOP_FILE $INSTALL_PREFIX/share/applications/$NORMALIZED_DESKTOP_FILE_NAME
+desktop-file-edit --set-key=Icon --set-value=%%NORMALIZED_PROJECT_ICON_NAME%% $INSTALL_PREFIX/share/applications/$NORMALIZED_DESKTOP_FILE_NAME
+install -v -D %%PROJECT_ICON_FILE%% $INSTALL_PREFIX/share/icons/hicolor/%%ICON_SIZE%%/apps/%%NORMALIZED_PROJECT_ICON_PATH%%

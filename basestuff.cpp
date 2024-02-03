@@ -42,19 +42,10 @@ ProjectDefinition    getProjectDescription(QString path)
     QJsonObject obj = jsondoc.object();
     println("Project name is : " + obj["name"].toString() + "\n");
     ProjectDefinition def;
-    def.desktopIcon = "";
-    if (obj.contains("desktop-icon"))
-        def.desktopIcon = obj.value("desktop-icon").toString();
-    if (obj.contains("desktop-categories"))
-    {
-        for (auto entry : obj.value("desktop-categories").toArray().toVariantList())
-        {
-            def.categories.append(entry.toString());
-        }
-    }
-
     def.name = obj["name"].toString();
     def.targetName = def.name;
+    def.author = obj["author"].toString();
+    def.authorMail = obj["author-mail"].toString();
     def.shortDescription = obj["short-description"].toString();
     def.description = obj["description"].toString();
     def.icon = obj["icon"].toString();
@@ -69,6 +60,10 @@ ProjectDefinition    getProjectDescription(QString path)
         QFileInfo fi(basePath + "/" + obj.value("project-base-path").toString());
         def.projectBasePath = fi.absolutePath();
     }
+    if (obj.contains("license-file"))
+        def.licenseFile = obj["license-file"].toString();
+    if (obj.contains("license-name"))
+        def.licenseFile = obj["license-name"].toString();
     def.qtMajorVersion = "auto";
     if (obj.contains("qt-major-version"))
         def.qtMajorVersion = obj["qt-major-version"].toString();
@@ -78,6 +73,24 @@ ProjectDefinition    getProjectDescription(QString path)
         def.translationDir = obj["translations-dir"].toString();
     if (obj.contains("files"))
         handleFiles(def, obj);
+
+    // Unix DESKTOP stuff
+    if (obj.contains("desktop-file"))
+    {
+        def.desktopFile = obj["desktop-file"].toString();
+    }
+    def.desktopFileNormalizedName = def.org + "." + def.name + ".desktop";
+    def.desktopIcon = "";
+    if (obj.contains("desktop-icon"))
+        def.desktopIcon = obj.value("desktop-icon").toString();
+    if (obj.contains("desktop-categories"))
+    {
+        for (auto entry : obj.value("desktop-categories").toArray().toVariantList())
+        {
+            def.categories.append(entry.toString());
+        }
+    }
+    def.debianPackageName = def.name.toLower();
     return def;
 }
 
@@ -143,6 +156,8 @@ void    findVersion(ProjectDefinition& proj)
         bool ok = run.run("git", basePath, QStringList() << "status");
         if (!ok)
             return QString();
+        run.run("git", basePath,  QStringList() << "rev-parse" << "--abbrev-ref" << "HEAD");
+        QString branchName = run.getStdout().trimmed();
         // Checking if we are in a tag
         ok = run.run("git", basePath, QStringList() << "describe" << "--tags" << "--exact-match");
         if (ok)
@@ -158,7 +173,7 @@ void    findVersion(ProjectDefinition& proj)
             return out.trimmed();
         }
         // If no tag, use the last commit hash first 8 characters
-        ok = run.run("git", basePath, QStringList() << "rev-parse" << "--verify master");
+        ok = run.run("git", basePath, QStringList() << "rev-parse" << "--verify" << branchName);
         QString out = run.getStdout();
         return out.left(8);
     });
@@ -175,6 +190,7 @@ void    findVersion(ProjectDefinition& proj)
         {
             error_and_exit("Did not managed to determine a version using git");
         }
+        proj.versionType = "git";
         println("Project version is " + proj.version);
         return ;
     }
@@ -182,6 +198,7 @@ void    findVersion(ProjectDefinition& proj)
     {
         println("Project version specified to use current date");
         proj.version = QDateTime::currentDateTime().toString("yyyy-MM-dd");
+        proj.versionType = "date";
         println("Project version is " + proj.version);
         return ;
     }
@@ -190,12 +207,62 @@ void    findVersion(ProjectDefinition& proj)
     if (!proj.version.isEmpty())
     {
         println("Project version is " + proj.version);
+        proj.versionType = "git";
         return ;
     }
     println("Git failed, falling back to using current date");
     proj.version = QDateTime::currentDateTime().toString("yyyy-MM-dd");
     println("Project version is " + proj.version);
 }
+
+const QStringList debianLicenses = {"Apache-2.0", "CC0-1.0", "GFDL-1.3", "GPL-2", "LGPL-2", "MPL-1.1", "Artistic", "GFDL", "GPL", "GPL-3", "LGPL-2.1", "MPL-2.0", "BSD", "GFDL-1.2", "GPL-1", "LGPL", "LGPL-3"};
+const QString GPLV3 = "GNU GENERAL PUBLIC LICENSE\n" \
+"                       Version 3, 29 June 2007";
+
+void    findLicense(ProjectDefinition& project)
+{
+    if (project.licenseName.isEmpty() == false && project.licenseFile.isEmpty() == false)
+    {
+        return ;
+    }
+    println("Trying to find a License file");
+    if (project.licenseFile.isEmpty()) {
+        QString result = checkForFile(project.basePath, QRegularExpression("licence", QRegularExpression::CaseInsensitiveOption));
+        if (!result.isEmpty())
+        {
+            project.licenseFile = result;
+        } else {
+            result = checkForFile(project.basePath, QRegularExpression("license", QRegularExpression::CaseInsensitiveOption));
+            project.licenseFile = result;
+        }
+        if (result.isEmpty())
+        {
+            error_and_exit("\tCan't find a license file, please set the license-file field if you don't use an obvious license file name");
+        }
+    }
+    if (!project.licenseName.isEmpty())
+        return ;
+    println("Trying to find the License Name");
+    for (QString debLicence : debianLicenses)
+    {
+        if (project.licenseFile.contains(debLicence))
+            project.licenseName = debLicence;
+    }
+    if (project.licenseName.isEmpty())
+    {
+        QFile licenseFile(project.basePath + "/" + project.licenseFile);
+        if (!licenseFile.open(QIODevice::Text | QIODevice::ReadOnly))
+        {
+            error_and_exit("Can't open the license file: " + licenseFile.fileName() + " - " + licenseFile.errorString());
+        }
+        QString data = licenseFile.read(512);
+        if (data.startsWith(GPLV3))
+            project.licenseName = "GPL-3";
+    }
+    if (!project.licenseName.isEmpty())
+        println("\tLicense name is " + project.licenseName);
+}
+
 
 QString    checkForFile(const QString path, const QRegularExpression searchPattern)
 {

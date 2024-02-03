@@ -24,22 +24,32 @@ struct ProjectDefinition
     QString     name;
     QString     shortDescription;
     QString     description;
+    QString     author;
+    QString     authorMail;
+
     QStringList qtModules;
     QString     icon;
     QSize       iconSize;
     QString     org;
-    QString     basePath;
-    QString     projectBasePath;
+    QString     basePath; // This is the path where the .pro file is
+    QString     projectBasePath; // This can override basePath for when the .pro file is a sub 'project' like the ExampleApp
     QString     flatpakFilesystemPermission;
     QString     flatpakFile;
     QString     flatpakName;
+    QString     debianMaintainer;
+    QString     debianMaintainerMail;
+    QString     debianPackageName;
     QString     proFile;
+    QString     versionType;
     QString     version;
     QString     readmeFile;
     QString     licenseFile;
+    QString     licenseName;
     QString     qtMajorVersion;
     QString     desktopIcon;
     QString     desktopFile;
+    QString     desktopFileNormalizedName;
+    QString     desktopIconNormalizedName;
     QStringList categories;
     QString     targetName;
     QString     translationDir;

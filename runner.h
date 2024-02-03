@@ -20,6 +20,7 @@ public:
     QByteArray  getStdout();
     QByteArray  getStderr();
     QProcessEnvironment env() const;
+    void        addEnv(const QString& name, const QString& value);
     void        setEnv(QProcessEnvironment env);
 
 private:
