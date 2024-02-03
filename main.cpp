@@ -100,4 +100,22 @@ int main(int argc, char *argv[])
             generateFlatPakFile(project);
         buildFlatPak(project);
     }
+    if (parser.isSet("gen-debian"))
+    {
+        if (!checkDebian(project))
+        {
+            error_and_exit("The project definition is not suited to generate debian packaging files");
+        }
+        setDesktopRC(project);
+        generateUnixInstallFile(project);
+        generateDebianFiles(project);
+    }
+    if (parser.isSet("build") && parser.value("build") == "debian")
+    {
+        if (!checkDebian(project))
+        {
+            error_and_exit("The project definition is not suited to generate debian packaging files");
+        }
+        buildDebian(project);
+    }
 }

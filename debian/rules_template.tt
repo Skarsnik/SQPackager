@@ -1,3 +1,9 @@
 #!/usr/bin/make -f
+#Don't edit this file in QtCreator, blank need to be tabulation and not space
 %:
-        dh $@
+	dh $@
+override_dh_auto_configure:
+	%%QMAKE%% -makefile 'QMAKE_STRIP=:' 'PREFIX=/usr' %%QMAKE_OPTIONS%%
+
+override_dh_auto_install:
+	sh ./sqpackager_unix_installer.sh --prefix $$(pwd)/debian/%%PACKAGE_NAME%%/usr/

@@ -13,6 +13,10 @@ bool    checkFlatPak(const ProjectDefinition project, bool bypass = false);
 void    generateFlatPakFile(ProjectDefinition& project);
 void    buildFlatPak(const ProjectDefinition& project);
 
+void    generateDebianFiles(ProjectDefinition& project);
+bool    checkDebian(const ProjectDefinition& project);
+void    buildDebian(const ProjectDefinition& project);
+
 void    genWindows(ProjectDefinition& project);
 void    buildWindows(ProjectDefinition &project);
 

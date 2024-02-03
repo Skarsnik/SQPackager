@@ -9,4 +9,4 @@ Package: %%PACKAGE_NAME%%
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: %%SHORT_DESCRIPTION%%
-%%LONG_DESCRIPTION%%
+ %%LONG_DESCRIPTION%%
