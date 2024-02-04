@@ -281,6 +281,8 @@ QString    checkForFile(const QString path, const QRegularExpression searchPatte
 }
 
 const QRegularExpression varEntry("%%([\\w_]+)%%");
+const QRegularExpression ifStartEntry("%%\\{IF ([\\w_]+)%%");
+const QRegularExpression ifEndEntry("%%}IF%%");
 
 QString    useTemplateFile(QString rcPath, QMap<QString, QString> mapping)
 {
@@ -290,9 +292,29 @@ QString    useTemplateFile(QString rcPath, QMap<QString, QString> mapping)
         error_and_exit("Can't open template file " + templateFile.fileName() + " : " + templateFile.errorString());
     }
     QString toret;
+    bool    skipLine = false;
     while (!templateFile.atEnd())
     {
         QString line = templateFile.readLine();
+        auto ifStartMatch = ifStartEntry.match(line);
+        auto ifEndMatch = ifEndEntry.match(line);
+        if (ifEndMatch.hasMatch())
+        {
+            skipLine = false;
+            continue;
+        }
+        if (ifStartMatch.hasMatch())
+        {
+            const QString key = ifStartMatch.captured(1);
+            if (!mapping.contains(key))
+            {
+                skipLine = true;
+            } else {
+                continue;
+            }
+        }
+        if (skipLine)
+            continue;
         auto matchs = varEntry.globalMatch(line);
         if (matchs.hasNext())
         {

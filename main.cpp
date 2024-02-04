@@ -16,6 +16,8 @@ QTextStream cout(stdout);
 PackagerOptions gOptions;
 
 
+void    testTemplate();
+
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
@@ -35,6 +37,7 @@ int main(int argc, char *argv[])
                       });
     //return a.exec();
     parser.process(a);
+    //testTemplate();
     ProjectDefinition project;
     if (parser.positionalArguments().isEmpty())
     {
@@ -118,4 +121,22 @@ int main(int argc, char *argv[])
         }
         buildDebian(project);
     }
+}
+
+#include "print.h"
+
+void    testTemplate()
+{
+    QMap<QString, QString> map;
+    println("Testing without if");
+    map["test1"] = "Fifou";
+    map["test2"] = "Piko";
+    map["test3"] = "Nyo";
+    QString withoutIf = useTemplateFile(":/testtemplate.tt", map);
+    println(withoutIf);
+    println("==== WITH IF ====");
+    map["testif"];
+    QString withIf = useTemplateFile(":/testtemplate.tt", map);
+    println(withIf);
+    exit(0);
 }
