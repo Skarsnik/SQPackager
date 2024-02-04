@@ -62,9 +62,11 @@ void    generateDebianFiles(ProjectDefinition& proj)
     }
     QMap<QString, QString> map;
     map["QMAKE"] = "qmake";
+    map["LRELEASE"] = "/usr/lib/qt5/bin/lrelease";
     if (proj.qtMajorVersion == "6")
     {
         map["QMAKE"] = "qmake6";
+        map["LRELEASE"] = "/usr/lib/qt6/bin/lrelease";
     }
     if (proj.qtMajorVersion == "auto")
     {
@@ -74,18 +76,18 @@ void    generateDebianFiles(ProjectDefinition& proj)
         if (ok)
         {
             map["QMAKE"] = "qmake6";
+            map["LRELEASE"] = "/usr/lib/qt6/bin/lrelease";
         } else {
             println("\tqmake6 executable not found, falling back to qmake");
         }
     }
-    map["PROJECT_TARGET"] = proj.targetName;
     map["PACKAGE_NAME"] = packageName;
-    map["ICON_SIZE"] = QString("%1x%2").arg(proj.iconSize.width()).arg(proj.iconSize.height());
+    map["PROJECT_FILE"] = proj.proFile;
     map["QMAKE_OPTIONS"] = "DEFINES+=\"SQPROJECT_LINUX_INSTALL\" DEFINES+=\"SQPROJECT_DEBIAN_BUILD\" DEFINES+=\"SQPROJECT_INSTALL_PREFIX=/usr/\" CONFIG+=\"release no_batch\"";
-    map["DESKTOP_FILE"] = proj.desktopFile;
-    map["PROJECT_ICON_FILE"] = proj.desktopIcon;
-    map["PROJECT_ICON_NORMALIZED_NAME"] = proj.desktopIconNormalizedName;
-    map["PROJECT_ICON_NORMALIZED_BASE_NAME"] = proj.org + "." + proj.name;
+    if (proj.translationDir.isEmpty() == false)
+    {
+        map["HAS_TRANSLATIONS"] = "yes";
+    }
     QString rules = useTemplateFile(":/debian/rules_template.tt", map);
     ruleFile.write(rules.toLocal8Bit());
     ruleFile.close();
@@ -166,7 +168,6 @@ bool    checkDebian(const ProjectDefinition& proj)
 
 void    buildDebian(const ProjectDefinition& project)
 {
-    // First we create the .orig.tar.gz
     QString projectBasePath = project.basePath;
     QString subDir = "";
     if (project.projectBasePath != project.basePath)

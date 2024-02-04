@@ -5,5 +5,11 @@
 override_dh_auto_configure:
 	%%QMAKE%% -makefile 'QMAKE_STRIP=:' 'PREFIX=/usr' %%QMAKE_OPTIONS%%
 
+%%{IF HAS_TRANSLATIONS%%
+override_dh_auto_build:
+	dh_auto_build
+	%%LRELEASE%% %%PROJECT_FILE%%
+%%}IF%%
+
 override_dh_auto_install:
 	sh ./sqpackager_unix_installer.sh --prefix $$(pwd)/debian/%%PACKAGE_NAME%%/usr/

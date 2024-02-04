@@ -11,6 +11,7 @@ void    generateUnixInstallFile(const ProjectDefinition& project)
 
     mapping["SQPACKAGER_VERSION"] = "0.1";
     mapping["PROJECT_TARGET"] = project.targetName;
+    mapping["APPLICATION_NAME"] = project.name;
     mapping["DESKTOP_FILE"] = project.desktopFile;
     mapping["NORMALIZED_DESKTOP_FILE_NAME"] = project.desktopFileNormalizedName;
     mapping["DEBIAN_PACKAGE_NAME"] = project.debianPackageName;
@@ -19,6 +20,11 @@ void    generateUnixInstallFile(const ProjectDefinition& project)
     mapping["NORMALIZED_PROJECT_ICON_PATH"] = project.desktopIconNormalizedName;
     mapping["PROJECT_ICON_FILE"] = project.icon;
     mapping["ICON_SIZE"] = QString("%1x%2").arg(project.iconSize.width()).arg(project.iconSize.height());
+    if (project.translationDir.isEmpty() == false)
+    {
+        mapping["HAS_TRANSLATIONS"] = "";
+        mapping["TRANSLATION_DIR"] = project.translationDir;
+    }
     QFile unixInstallFile(project.basePath + "/sqpackager_unix_installer.sh");
     if (!unixInstallFile.open(QIODevice::Text | QIODevice::WriteOnly))
     {
