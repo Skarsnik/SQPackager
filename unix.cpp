@@ -20,6 +20,11 @@ void    generateUnixInstallFile(const ProjectDefinition& project)
     mapping["NORMALIZED_PROJECT_ICON_PATH"] = project.desktopIconNormalizedName;
     mapping["PROJECT_ICON_FILE"] = project.icon;
     mapping["ICON_SIZE"] = QString("%1x%2").arg(project.iconSize.width()).arg(project.iconSize.height());
+    if (project.readmeFile.isEmpty() == false)
+    {
+        mapping["HAS_README"] = "";
+        mapping["README"] = project.readmeFile;
+    }
     if (project.translationDir.isEmpty() == false)
     {
         mapping["HAS_TRANSLATIONS"] = "";

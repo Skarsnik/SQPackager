@@ -26,8 +26,16 @@ install -v -D %%PROJECT_ICON_FILE%% $INSTALL_PREFIX/share/icons/hicolor/%%ICON_S
 
 %%{IF HAS_TRANSLATIONS%%
 echo "Installing translations files"
-for TRANSLATION_FILE in %%TRANSLATION_DIR%%/*.qm;
+echo %%TRANSLATION_DIR%%
+cd %%TRANSLATION_DIR%%
+for TRANSLATION_FILE in *.qm;
 do
-install -v -d $INSTALL_PREFIX/share/$APPLICATION_NAME/translations/$TRANSLATION_FILE;
+install -v -D $PWD/$TRANSLATION_FILE $INSTALL_PREFIX/share/$APPLICATION_NAME/translations/$TRANSLATION_FILE;
 done
+cd -
+%%}IF%%
+
+%%{IF HAS_README%%
+echo "Installing Readme file"
+install -v -D %%README%% $INSTALL_PREFIX/share/doc/$APPLICATION_NAME/%%README%%
 %%}IF%%

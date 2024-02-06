@@ -263,6 +263,18 @@ void    findLicense(ProjectDefinition& project)
         println("\tLicense name is " + project.licenseName);
 }
 
+void        findReadme(ProjectDefinition& project)
+{
+    if (!project.readmeFile.isEmpty())
+        return;
+    println("Searching for a Readme file");
+    QString readmeSearch = checkForFile(project.basePath, QRegularExpression("readme", QRegularExpression::CaseInsensitiveOption));
+    if (readmeSearch.isEmpty() == false)
+    {
+        project.readmeFile = readmeSearch;
+        println("\tFound " + readmeSearch);
+    }
+}
 
 QString    checkForFile(const QString path, const QRegularExpression searchPattern)
 {

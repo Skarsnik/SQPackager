@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
     }
     findQtModules(project);
     findLicense(project);
+    findReadme(project);
     if (parser.isSet("version"))
         project.version = parser.value("version");
     else
