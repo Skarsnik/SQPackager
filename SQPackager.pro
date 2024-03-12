@@ -20,6 +20,7 @@ SOURCES += \
 
 HEADERS += \
     basestuff.h \
+    compile_defines.h \
     print.h \
     projectdefinition.h \
     runner.h \
