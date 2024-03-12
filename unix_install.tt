@@ -9,20 +9,22 @@ if [ "$1" = '--prefix' ]; then
     PREFIX=$2
 fi
 INSTALL_PREFIX=$PREFIX
+
 echo "Installing target binary"
 
 install -v -D $PROJECT_TARGET $INSTALL_PREFIX/bin/$PROJECT_TARGET
 
-DESKTOP_FILE=%%DESKTOP_FILE%%
-NORMALIZED_DESKTOP_FILE_NAME=%%NORMALIZED_DESKTOP_FILE_NAME%%
-APPLICATION_NAME=%%APPLICATION_NAME%%
+DESKTOP_FILE="%%DESKTOP_FILE%%"
+NORMALIZED_DESKTOP_FILE_NAME="%%NORMALIZED_DESKTOP_FILE_NAME%%"
+APPLICATION_NAME="%%APPLICATION_NAME%%"
+APPLICATION_SHARE="$INSTALL_PREFIX/share/$APPLICATION_NAME"
+TRANSLATION_DIR="$APPLICATION_SHARE/i18n/"
 
 echo "Installing .desktop file"
 
 install -v -d $INSTALL_PREFIX/share/applications/
 install -v -Dm644 $DESKTOP_FILE $INSTALL_PREFIX/share/applications/$NORMALIZED_DESKTOP_FILE_NAME
-desktop-file-edit --set-key=Icon --set-value=%%NORMALIZED_PROJECT_ICON_NAME%% $INSTALL_PREFIX/share/applications/$NORMALIZED_DESKTOP_FILE_NAME
-install -v -D %%PROJECT_ICON_FILE%% $INSTALL_PREFIX/share/icons/hicolor/%%ICON_SIZE%%/apps/%%NORMALIZED_PROJECT_ICON_PATH%%
+install -v -D "%%PROJECT_ICON_FILE%%" $INSTALL_PREFIX/share/icons/hicolor/%%ICON_SIZE%%/apps/%%NORMALIZED_PROJECT_ICON_PATH%%
 
 %%{IF HAS_TRANSLATIONS%%
 echo "Installing translations files"
@@ -30,7 +32,7 @@ echo %%TRANSLATION_DIR%%
 cd %%TRANSLATION_DIR%%
 for TRANSLATION_FILE in *.qm;
 do
-install -v -D $PWD/$TRANSLATION_FILE $INSTALL_PREFIX/share/$APPLICATION_NAME/translations/$TRANSLATION_FILE;
+install -v -D $PWD/$TRANSLATION_FILE $TRANSLATION_DIR/$TRANSLATION_FILE;
 done
 cd -
 %%}IF%%
@@ -38,4 +40,21 @@ cd -
 %%{IF HAS_README%%
 echo "Installing Readme file"
 install -v -D %%README%% $INSTALL_PREFIX/share/doc/$APPLICATION_NAME/%%README%%
+%%}IF%%
+
+if [ -e "$PROJECT_TARGET.manpage.1" ]; then
+    install -v -d $INSTALL_PREFIX/share/man/man1/
+    gzip -c "$PROJECT_TARGET.manpage.1" > $INSTALL_PREFIX/share/man/man1/"$PROJECT_TARGET.1.gz"
+fi
+
+%%{IF HAS_RELEASE_FILES%%
+install_directory() {
+    cd "$1"
+    find . -type f -exec install -v -m644 -D "{}" "$APPLICATION_SHARE/$2/{}" \;
+    cd -
+}
+install_file() {
+    install -v -D "$1" "$APPLICATION_SHARE/$2"
+}
+%%RELEASE_FILES_STRING%%
 %%}IF%%

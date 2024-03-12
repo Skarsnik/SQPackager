@@ -22,6 +22,7 @@ struct ReleaseFile
 struct ProjectDefinition
 {
     QString     name;
+    QString     unixNormalizedName;
     QString     shortDescription;
     QString     description;
     QString     author;

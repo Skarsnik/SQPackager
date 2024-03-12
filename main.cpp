@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     } else {
         project = getProjectDescription(parser.positionalArguments().at(0));
     }
-    findQtModules(project);
+    extractInfosFromProFile(project);
     findLicense(project);
     findReadme(project);
     if (parser.isSet("version"))
@@ -111,6 +111,7 @@ int main(int argc, char *argv[])
             error_and_exit("The project definition is not suited to generate debian packaging files");
         }
         setDesktopRC(project);
+        generateManPage(project);
         generateUnixInstallFile(project);
         generateDebianFiles(project);
     }

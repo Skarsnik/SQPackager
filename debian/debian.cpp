@@ -1,11 +1,46 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QFile>
+#include <QVersionNumber>
 #include <print.h>
 #include <runner.h>
 #include <basestuff.h>
 #include <sqpackager.h>
-#include <QVersionNumber>
+#include <compile_defines.h>
+
+
+const QMap<QString, QString> debianQt5ModulesName = {
+    {"websockets", "libqt5websockets5-dev"},
+    {"gamepad", "libqt5gamepad5-dev"},
+    {"serialport", "libqt5serialport5-dev"},
+};
+
+const QMap<QString, QString> debianQt6ModulesName = {
+    {"websockets", "libqt6websockets6-dev"},
+    {"serialport", "libqt6serialport6-dev"}
+};
+
+const QStringList qt6ModulesInBase = {
+    "core",
+    "gui",
+    "widgets",
+    "network",
+    "xml",
+    "dbus",
+    "sql",
+    "concurrent"
+};
+
+const QStringList qt5ModulesInBase = {
+    "core",
+    "gui",
+    "widgets",
+    "network",
+    "xml",
+    "dbus",
+    "sql",
+    "concurrent"
+};
 
 static QString getDebianVersion(const ProjectDefinition& proj);
 
@@ -20,7 +55,28 @@ void    generateDebianFiles(ProjectDefinition& proj)
     {
         proj.debianMaintainerMail = proj.authorMail;
     }
-    QString packageName = proj.name.toLower();
+    proj.debianPackageName = proj.name.toLower().replace(' ', '-');
+    QString qmakeExecutable = "qmake";
+    QString lreleaseExecutable = "/usr/lib/qt5/bin/lrelease";
+    if (proj.qtMajorVersion == "6")
+    {
+        qmakeExecutable = "qmake6";
+        lreleaseExecutable = "/usr/lib/qt6/bin/lrelease";
+    }
+    if (proj.qtMajorVersion == "auto")
+    {
+        println("No Qt major version provided, detecting qmake executable");
+        Runner testqmake;
+        bool ok = testqmake.run("qmake6", QStringList() << "--version");
+        if (ok)
+        {
+            qmakeExecutable = "qmake6";
+            lreleaseExecutable = "/usr/lib/qt6/bin/lrelease";
+        } else {
+            println("\tqmake6 executable not found, falling back to qmake");
+        }
+    }
+
     QString debianVersion = getDebianVersion(proj);
     debianVersion += "-1";
     QDir debDir(proj.basePath + "/debian");
@@ -35,7 +91,7 @@ void    generateDebianFiles(ProjectDefinition& proj)
     Runner run(true);
     run.addEnv("DEBEMAIL", proj.debianMaintainerMail);
     run.addEnv("DEBFULNAME", proj.debianMaintainer);
-    run.runWithOut("dch", QStringList() << "--create" << "-v" << debianVersion << "--package" << packageName << "Initial release generated with SQPackager", proj.basePath);
+    run.runWithOut("dch", QStringList() << "--create" << "-v" << debianVersion << "--package" << proj.debianPackageName << "Initial release generated with SQPackager", proj.basePath);
     // Changelog dch --create -v 1.0-1 --package hithere
     println("Creating compat file");
     QFile compatFile(proj.basePath + "/debian/compat");
@@ -54,6 +110,8 @@ void    generateDebianFiles(ProjectDefinition& proj)
     }
     formatFile.write("3.0 (quilt)\n");
     formatFile.close();
+
+ // rules file
     println("Creating rules file");
     QFile ruleFile(proj.basePath + "/debian/rules");
     if (!ruleFile.open(QIODevice::WriteOnly | QIODevice::Text))
@@ -61,29 +119,19 @@ void    generateDebianFiles(ProjectDefinition& proj)
         error_and_exit("Could not open debian/rules " + ruleFile.errorString());
     }
     QMap<QString, QString> map;
-    map["QMAKE"] = "qmake";
-    map["LRELEASE"] = "/usr/lib/qt5/bin/lrelease";
-    if (proj.qtMajorVersion == "6")
-    {
-        map["QMAKE"] = "qmake6";
-        map["LRELEASE"] = "/usr/lib/qt6/bin/lrelease";
-    }
-    if (proj.qtMajorVersion == "auto")
-    {
-        println("No Qt major version provided, detecting qmake executable");
-        Runner testqmake;
-        bool ok = testqmake.run("qmake6", QStringList() << "--version");
-        if (ok)
-        {
-            map["QMAKE"] = "qmake6";
-            map["LRELEASE"] = "/usr/lib/qt6/bin/lrelease";
-        } else {
-            println("\tqmake6 executable not found, falling back to qmake");
-        }
-    }
-    map["PACKAGE_NAME"] = packageName;
+    map["QMAKE"] = qmakeExecutable;
+    map["LRELEASE"] = lreleaseExecutable;
+    map["PACKAGE_NAME"] = proj.debianPackageName;
     map["PROJECT_FILE"] = proj.proFile;
-    map["QMAKE_OPTIONS"] = "DEFINES+=\"SQPROJECT_LINUX_INSTALL\" DEFINES+=\"SQPROJECT_DEBIAN_BUILD\" DEFINES+=\"SQPROJECT_INSTALL_PREFIX=/usr/\" CONFIG+=\"release no_batch\"";
+    const QStringList qmake_defines = {CompileDefines::debian_install, CompileDefines::installed};
+    QString defines_option;
+    for (auto define : qmake_defines)
+    {
+        defines_option += "DEFINES+=\"" + define + "\" ";
+    }
+    defines_option += "DEFINES+='" + CompileDefines::unix_install_prefix + "=\\\\\\\"/usr/\\\\\\\"' ";
+    defines_option += "DEFINES+='" + CompileDefines::unix_install_share_path + "=\\\\\\\"/usr/share/" + proj.unixNormalizedName + "\\\\\\\"' ";
+    map["QMAKE_OPTIONS"] = defines_option +  " CONFIG+=\"release no_batch\"";
     if (proj.translationDir.isEmpty() == false)
     {
         map["HAS_TRANSLATIONS"] = "yes";
@@ -98,12 +146,62 @@ void    generateDebianFiles(ProjectDefinition& proj)
         error_and_exit("Could not open debian/rules" + controlFile.errorString());
     }
     map.clear();
-    map["SOURCE_NAME"] = proj.name.toLower();
-    map["PACKAGE_NAME"] = proj.name.toLower();
+
+ // control File
+    map["SOURCE_NAME"] = proj.debianPackageName;
+    map["PACKAGE_NAME"] = proj.debianPackageName;
     map["MAINTAINER_NAME"] = proj.debianMaintainer;
     map["MAINTAINER_MAIL"] = proj.debianMaintainerMail;
-    map["LONG_DESCRIPTION"] = proj.description;
     map["SHORT_DESCRIPTION"] = proj.shortDescription;
+    map["QT_BASE_DEV"] = "qtbase5-dev";
+    const QMap<QString, QString>* debianModulesName = &debianQt5ModulesName;
+    QStringList debianModulesInBase = qt5ModulesInBase;
+    if (qmakeExecutable == "qmake6")
+    {
+        map["QT_BASE_DEV"] = "qt6-base-dev";
+        debianModulesName = &debianQt6ModulesName;
+        debianModulesInBase = qt6ModulesInBase;
+    }
+    QStringList modulesDepend;
+    println(proj.qtModules.join(", "));
+    for (QString moduleName : proj.qtModules)
+    {
+        if (debianModulesName->contains(moduleName))
+        {
+            modulesDepend.append((*debianModulesName)[moduleName]);
+        } else {
+            if (debianModulesInBase.contains(moduleName) == false)
+                error_and_exit("SQPackager doesn't know the debian package corresponding to the module name : " + moduleName);
+        }
+    }
+    if (modulesDepend.isEmpty() == false)
+    {
+        map["QT_MODULES"] = modulesDepend.join(", ");
+    }
+    QString longDescription;
+    for (QString line : proj.description.split('\n'))
+    {
+        QString newLine = "";
+        if (line.startsWith(' '))
+            newLine = line;
+        else
+            newLine = line.prepend(' ');
+        if (newLine.size() > 80)
+        {
+            QStringList listLines;
+            unsigned int i = 0;
+            while (newLine.size() > i * 79)
+            {
+                listLines.append(newLine.mid(i * 79, 79));
+                i++;
+            }
+            newLine = listLines.join("\n ");
+        }
+        newLine.append("\n");
+        longDescription.append(newLine);
+    }
+    println(longDescription);
+    map["LONG_DESCRIPTION"] = longDescription;
     QString control = useTemplateFile(":/debian/control_template.tt", map);
     controlFile.write(control.toLocal8Bit());
     controlFile.close();
@@ -118,6 +216,8 @@ void    generateDebianFiles(ProjectDefinition& proj)
     map["AUTHOR"] = proj.author;
     map["AUTHOR_MAIL"] = proj.authorMail;
     map["LICENSE_NAME"] = proj.licenseName;
+    map["CURRENT_YEAR"] = QString::number(QDateTime::currentDateTime().date().year());
+    map["TARGET_NAME"] = proj.targetName;
     QString copyrightString = useTemplateFile(":/debian/copyright_template.tt", map);
     copyrightFile.write(copyrightString.toLocal8Bit());
     copyrightFile.close();
@@ -177,7 +277,7 @@ void    buildDebian(const ProjectDefinition& project)
         subDir = cpy.replace(project.projectBasePath, "");
     }
     QString debianVersion = getDebianVersion(project);
-    QString debianNormalizedName = project.name.toLower() + "_" + debianVersion;
+    QString debianNormalizedName = project.debianPackageName + "_" + debianVersion;
     Runner  run(true);
     println("Copying project files into another directory");
     QString tmpPath = "/tmp/" + debianNormalizedName;

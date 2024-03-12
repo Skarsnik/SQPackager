@@ -44,6 +44,8 @@ ProjectDefinition    getProjectDescription(QString path)
     ProjectDefinition def;
     def.name = obj["name"].toString();
     def.targetName = def.name;
+    QString tmpString = def.name;
+    def.unixNormalizedName = tmpString.replace(" ", "-");
     def.author = obj["author"].toString();
     def.authorMail = obj["author-mail"].toString();
     def.shortDescription = obj["short-description"].toString();
@@ -79,7 +81,7 @@ ProjectDefinition    getProjectDescription(QString path)
     {
         def.desktopFile = obj["desktop-file"].toString();
     }
-    def.desktopFileNormalizedName = def.org + "." + def.name + ".desktop";
+    def.desktopFileNormalizedName = def.org + "." + def.unixNormalizedName + ".desktop";
     def.desktopIcon = "";
     if (obj.contains("desktop-icon"))
         def.desktopIcon = obj.value("desktop-icon").toString();
@@ -113,33 +115,46 @@ void    handleFiles(ProjectDefinition& def, QJsonObject& obj)
     }
 }
 
-void    findQtModules(ProjectDefinition& def)
-{
-    if (QFileInfo::exists(def.name + ".pro"))
-    {
-        QFile proFile(def.name + ".pro");
-        while (!proFile.atEnd())
-        {
-            QString line = proFile.readLine();
-#if QT_VERSION_MAJOR == 6
 #include <QRegularExpression>
-            const QRegularExpression qtDef("QT\\s+\\+=");
-            const QRegularExpression blankExp("\\s+");
-            if (qtDef.match(line).hasMatch())
-            {
-#else
-            QRegExp qtDef("QT\\s+\\+=");
-            const QRegExp blankExp("\\s+");
-            if (qtDef.indexIn(line) != -1)
-            {
-#endif
-                QString stringDef = line.split("+=").at(1);
-                QStringList qtmodule = stringDef.split(blankExp);
-                def.qtModules = qtmodule;
-                break;
-            }
+
+void    extractInfosFromProFile(ProjectDefinition& def)
+{
+    const QRegularExpression qtDef("^QT\\s*\\+=");
+    const QRegularExpression blankExp("\\s+");
+    const QRegularExpression targetDef("TARGET\\s*=\\s*(\\w+)");
+    println(def.proFile);
+    if (QFileInfo::exists(def.proFile) == false)
+    {
+        QString tmpString = def.name;
+        tmpString.replace(" ", "");
+        tmpString = def.basePath + "/" + tmpString + ".pro";
+        if (QFileInfo::exists(tmpString))
+        {
+            def.proFile = tmpString;
+        } else {
+            error_and_exit("Could not find the .pro file for the project, you can specify it using the <pro-file> field");
         }
     }
+    QFile proFile(def.proFile);
+    if (proFile.open(QIODevice::Text | QIODevice::ReadOnly) == false)
+        error_and_exit("Could not open the .pro file");
+    while (!proFile.atEnd())
+    {
+        QString line = proFile.readLine();
+        if (qtDef.match(line).hasMatch())
+        {
+            QString stringDef = line.split("+=").at(1);
+            println(stringDef);
+            QStringList qtmodule = stringDef.split(blankExp, Qt::SkipEmptyParts);
+            def.qtModules = qtmodule;
+        }
+        if (targetDef.match(line).hasMatch())
+        {
+            auto targetMatch = targetDef.match(line);
+            def.targetName = targetMatch.captured(1);
+        }
+    }
+    println("Target found is : " + def.targetName);
 }
 
 /*
@@ -215,6 +230,10 @@ void    findVersion(ProjectDefinition& proj)
     println("Project version is " + proj.version);
 }
 
+const QMap<QString, QString> correctLicense = {
+    {"GPL3", "GPL-3"}
+};
+
 const QStringList debianLicenses = {"Apache-2.0", "CC0-1.0", "GFDL-1.3", "GPL-2", "LGPL-2", "MPL-1.1", "Artistic", "GFDL", "GPL", "GPL-3", "LGPL-2.1", "MPL-2.0", "BSD", "GFDL-1.2", "GPL-1", "LGPL", "LGPL-3"};
 const QString GPLV3 = "GNU GENERAL PUBLIC LICENSE\n" \
 "                       Version 3, 29 June 2007";
@@ -243,10 +262,21 @@ void    findLicense(ProjectDefinition& project)
     if (!project.licenseName.isEmpty())
         return ;
     println("Trying to find the License Name");
-    for (QString debLicence : debianLicenses)
+    for (QString corrected : correctLicense.keys())
     {
-        if (project.licenseFile.contains(debLicence))
-            project.licenseName = debLicence;
+        if (project.licenseFile.contains(corrected))
+        {
+            project.licenseName = correctLicense[corrected];
+            break;
+        }
+    }
+    if (project.licenseName.isEmpty())
+    {
+        for (QString debLicence : debianLicenses)
+        {
+            if (project.licenseFile.contains(debLicence))
+                project.licenseName = debLicence;
+        }
     }
     if (project.licenseName.isEmpty())
     {

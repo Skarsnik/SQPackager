@@ -6,6 +6,22 @@
 #include <runner.h>
 #include <QFileInfo>
 
+const QStringList defaultCategories = {
+    "AudioVideo",
+    "Audio",
+    "Video",
+    "Development",
+    "Education",
+    "Game",
+    "Graphics",
+    "Network",
+    "Office",
+    "Science",
+    "Settings",
+    "System",
+    "Utility"
+};
+
 bool    checkDesktopRC(const ProjectDefinition& proj, bool bypass)
 {
     if (!bypass &&
@@ -59,40 +75,47 @@ void    setDesktopRC(ProjectDefinition& proj)
         if (proj.desktopIcon.isEmpty())
             proj.desktopIcon = proj.icon;
         QFileInfo fi(proj.basePath + "/" + proj.desktopIcon);
-        proj.desktopIconNormalizedName = proj.org + "." + proj.name + "." + fi.suffix();
+        proj.desktopIconNormalizedName = proj.org + "." + proj.unixNormalizedName + "." + fi.suffix();
         setIconSize(proj);
         return ;
     }
+    if (proj.desktopIcon.isEmpty())
+        proj.desktopIcon = proj.icon;
+    QFileInfo fi(proj.basePath + "/" + proj.desktopIcon);
+    proj.desktopIconNormalizedName = proj.org + "." + proj.unixNormalizedName + "." + fi.suffix();
+    setIconSize(proj);
     QString file = checkForFile(proj.basePath, QRegularExpression(".+\\.desktop$"));
+    //println("Desktop file is : " + file);
     if (!file.isEmpty())
     {
         proj.desktopFile = file;
-        if (proj.desktopIcon.isEmpty())
-            proj.desktopIcon = proj.icon;
-
     } else {
         generateLinuxDesktopRC(proj);
     }
-    QFileInfo fi(proj.basePath + "/" + proj.desktopIcon);
-    proj.desktopIconNormalizedName = proj.org + "." + proj.name + "." + fi.suffix();
-    setIconSize(proj);
 }
 
 bool    generateLinuxDesktopRC(ProjectDefinition& proj)
 {
-    QString desktopFilePath = proj.basePath + "/" + proj.name + ".desktop";
+    for (QString projCategory : proj.categories)
+    {
+        if (defaultCategories.contains(projCategory) == false)
+            error_and_exit("The category you specified for the .desktop file is not valid : " + projCategory);
+    }
+    QString desktopFilePath = proj.basePath + "/" + proj.unixNormalizedName + ".desktop";
     if (proj.desktopIcon.isEmpty())
         proj.desktopIcon = proj.icon;
     QMap<QString, QString> mapping;
     mapping["NAME"] = proj.name;
     mapping["COMMENT"] = proj.shortDescription;
-    mapping["EXEC"] = proj.name;
+    mapping["EXEC"] = proj.targetName;
     QFileInfo fi(proj.basePath + "/" + proj.desktopFile);
-    mapping["ICON"] = proj.desktopIconNormalizedName;
+    QFileInfo iconFi(proj.desktopIconNormalizedName);
+    mapping["ICON"] = iconFi.completeBaseName();
+    println(mapping["ICON"]);
     mapping["CATEGORIES"] = proj.categories.join(";");
     QString desktopString = useTemplateFile(":/desktop_template.tt", mapping);
     println("Creating .desktop file : " + desktopFilePath);
-    proj.desktopFile = proj.name + ".desktop";
+    proj.desktopFile = proj.unixNormalizedName + ".desktop";
     QFile desktopFile(desktopFilePath);
     if (!desktopFile.open(QIODevice::WriteOnly))
     {

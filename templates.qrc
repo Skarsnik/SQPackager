@@ -11,5 +11,6 @@
         <file>debian/rules_template.tt</file>
         <file>unix_install.tt</file>
         <file>debian/copyright_template.tt</file>
+        <file>manpage.tt</file>
     </qresource>
 </RCC>
