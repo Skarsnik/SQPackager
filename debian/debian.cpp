@@ -7,6 +7,7 @@
 #include <basestuff.h>
 #include <sqpackager.h>
 #include <compile_defines.h>
+#include <github.h>
 
 
 const QMap<QString, QString> debianQt5ModulesName = {
@@ -87,6 +88,7 @@ void    generateDebianFiles(ProjectDefinition& proj)
         debDir.mkpath("debian");
         debDir.cd("debian");
     }
+ // Changelog
     println("Creating Changelog");
     Runner run(true);
     run.addEnv("DEBEMAIL", proj.debianMaintainerMail);
@@ -286,6 +288,20 @@ void    buildDebian(const ProjectDefinition& project)
     //debuild --no-tgz-check -us -uc -b
     println("Building the .deb package");
     run.runWithOut("debuild", QStringList() << "-us" << "-uc" << "-b", tmpPath + "/" + subDir);
+    if (isGithubAction())
+    {
+        println("Inside GitHub Action environement, adding the debian package as output");
+        run.run("uname", QStringList() << "-m");
+        QString arch = run.getStdout().trimmed();
+        QString buildArch = "";
+        if (arch == "x86_64")
+            buildArch = "adm64";
+        println("Finding the package version");
+        //dpkg-parsechangelog -S version
+        run.run("dpkg-parsechangelog", QStringList() << "-l" << tmpPath + "/debian/changelog" << "-S" << "version");
+        QString packageVersion = run.getStdout().trimmed();
+        addGithubOutput("spackager_" + arch + "_deb", QString("/tmp/%1_%2_%3.deb").arg(project.debianPackageName, packageVersion, buildArch));
+    }
 }
 
 QString getDebianVersion(const ProjectDefinition& proj)

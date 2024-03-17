@@ -11,6 +11,7 @@ SOURCES += \
         basestuff.cpp \
         debian/debian.cpp \
         flatpak.cpp \
+        github.cpp \
         main.cpp \
         print.cpp \
         runner.cpp \
@@ -21,6 +22,7 @@ SOURCES += \
 HEADERS += \
     basestuff.h \
     compile_defines.h \
+    github.h \
     print.h \
     projectdefinition.h \
     runner.h \
