@@ -1,9 +1,10 @@
 #include "runner.h"
 #include "print.h"
 
-Runner::Runner(bool verbose)
+Runner::Runner(bool verbose, bool dummy)
 {
     m_verbose = verbose;
+    m_dummy = dummy;
 }
 
 bool Runner::run(QString command)
@@ -16,6 +17,8 @@ bool Runner::run(QString command, QStringList args)
 {
     if (m_verbose)
         println(command + " " + args.join(" "));
+    if (m_dummy)
+        return true;
     m_process.start(command, args);
     bool finished = m_process.waitForFinished();
     if (finished)
@@ -27,9 +30,11 @@ bool Runner::run(QString command, QString workingDir, QStringList args)
 {
     QString oldWD = m_process.workingDirectory();
     //println("CWD :" + workingDir);
-    m_process.setWorkingDirectory(workingDir);
     if (m_verbose)
         println(command + " " + args.join(" "));
+    if (m_dummy)
+        return true;
+    m_process.setWorkingDirectory(workingDir);
     m_process.start(command, args);
     //printlnYes("Started : ", m_process.waitForStarted());
     //println(m_process.errorString());
@@ -44,10 +49,12 @@ bool Runner::run(QString command, QString workingDir, QStringList args)
 
 bool Runner::runWithOut(QString command, QStringList args, QString workingDir)
 {
-    QString oldWD = m_process.workingDirectory();
-    m_process.setWorkingDirectory(workingDir);
     if (m_verbose)
         println(command + " " + args.join(" "));
+    if (m_dummy)
+        return true;
+    QString oldWD = m_process.workingDirectory();
+    m_process.setWorkingDirectory(workingDir);
     QProcess::ProcessChannelMode oldMode = m_process.processChannelMode();
     m_process.setProcessChannelMode(QProcess::MergedChannels);
     m_process.setReadChannel(QProcess::StandardOutput);
@@ -111,4 +118,5 @@ void Runner::setEnv(QProcessEnvironment env)
 Runner::Runner()
 {
     m_verbose = false;
+    m_dummy = false;
 }

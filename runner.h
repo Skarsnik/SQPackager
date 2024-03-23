@@ -9,7 +9,7 @@ class Runner
 {
 public:
     Runner();
-    Runner(bool verbose);
+    Runner(bool verbose, bool dummy = false);
     bool        run(QString command);
     bool        run(QString command, QStringList args);
     bool        run(QString command, QString workingDir, QStringList args);
@@ -28,6 +28,7 @@ private:
     QByteArray  m_stdout;
     QByteArray  m_stderr;
     bool        m_verbose;
+    bool        m_dummy;
 };
 
 #endif // RUNNER_H
