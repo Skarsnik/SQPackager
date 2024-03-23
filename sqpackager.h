@@ -16,6 +16,7 @@ void    buildFlatPak(const ProjectDefinition& project);
 void    generateDebianFiles(ProjectDefinition& project);
 bool    checkDebian(const ProjectDefinition& project);
 void    buildDebian(const ProjectDefinition& project);
+void    prepareDebian(const ProjectDefinition& project);
 
 void    genWindows(ProjectDefinition& project);
 void    buildWindows(ProjectDefinition &project);

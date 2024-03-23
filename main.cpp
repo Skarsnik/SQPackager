@@ -30,6 +30,7 @@ int main(int argc, char *argv[])
                     {"gen-windows", "Check and generate Windows related stuff"},
                     {"gen-debian", "Check and generate Debian files"},
                     {"build", "type", "Build the selected type"},
+                    {"prepare", "type", "Prepare the system to be able to build the type"},
                     {"windows-build-path", "path", "Set the base directory where compilation takes place"},
                     {"windows-deploy-path", "path", "Set the base directory where deployement takes place"},
                     {"gen-desktop", "Generate a .desktop file"},
@@ -103,6 +104,12 @@ int main(int argc, char *argv[])
         if (project.flatpakFile.isEmpty())
             generateFlatPakFile(project);
         buildFlatPak(project);
+    }
+    // Debian
+    if (parser.isSet("prepare") && parser.value("prepare") == "debian")
+    {
+        prepareDebian(project);
+        exit(0);
     }
     if (parser.isSet("gen-debian"))
     {

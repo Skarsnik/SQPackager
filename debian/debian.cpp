@@ -44,6 +44,34 @@ const QStringList qt5ModulesInBase = {
 };
 
 static QString getDebianVersion(const ProjectDefinition& proj);
+static QStringList getModulesList(const ProjectDefinition& project);
+
+QString qmakeExecutable = "qmake";
+static void setQMakeVersion(const ProjectDefinition& project);
+
+
+void    prepareDebian(const ProjectDefinition& project)
+{
+    if (project.qtMajorVersion == "auto" || project.qtMajorVersion == "qt6")
+        qmakeExecutable = "qmake6";
+    QStringList projectDeps = getModulesList(project);
+    Runner run(true);
+    QStringList aptGetInstallOptions;
+    aptGetInstallOptions << "--yes" << "install";
+
+    println("Installing debian package creation tools");
+    run.run("sudo", QStringList() << "apt-get" << "--yes" << "install" << "build-essential" << "fakeroot" << "devscripts");
+    println("Installing qt base dev package");
+    if (qmakeExecutable == "qmake6")
+        run.run("apt-get", QStringList() << aptGetInstallOptions << "qt6-base-dev");
+    else
+        run.run("apt-get", QStringList() << aptGetInstallOptions << "qtbase5-dev");
+    if (projectDeps.isEmpty() == false)
+    {
+        println("Installing additionnal(s) Qt module(s)");
+        run.run("apt-get", QStringList() << aptGetInstallOptions << projectDeps);
+    }
+}
 
 void    generateDebianFiles(ProjectDefinition& proj)
 {
@@ -57,25 +85,11 @@ void    generateDebianFiles(ProjectDefinition& proj)
         proj.debianMaintainerMail = proj.authorMail;
     }
     proj.debianPackageName = proj.name.toLower().replace(' ', '-');
-    QString qmakeExecutable = "qmake";
     QString lreleaseExecutable = "/usr/lib/qt5/bin/lrelease";
-    if (proj.qtMajorVersion == "6")
+    setQMakeVersion(proj);
+    if (qmakeExecutable == "qmake6")
     {
-        qmakeExecutable = "qmake6";
         lreleaseExecutable = "/usr/lib/qt6/bin/lrelease";
-    }
-    if (proj.qtMajorVersion == "auto")
-    {
-        println("No Qt major version provided, detecting qmake executable");
-        Runner testqmake;
-        bool ok = testqmake.run("qmake6", QStringList() << "--version");
-        if (ok)
-        {
-            qmakeExecutable = "qmake6";
-            lreleaseExecutable = "/usr/lib/qt6/bin/lrelease";
-        } else {
-            println("\tqmake6 executable not found, falling back to qmake");
-        }
     }
 
     QString debianVersion = getDebianVersion(proj);
@@ -156,26 +170,12 @@ void    generateDebianFiles(ProjectDefinition& proj)
     map["MAINTAINER_MAIL"] = proj.debianMaintainerMail;
     map["SHORT_DESCRIPTION"] = proj.shortDescription;
     map["QT_BASE_DEV"] = "qtbase5-dev";
-    const QMap<QString, QString>* debianModulesName = &debianQt5ModulesName;
-    QStringList debianModulesInBase = qt5ModulesInBase;
     if (qmakeExecutable == "qmake6")
     {
         map["QT_BASE_DEV"] = "qt6-base-dev";
-        debianModulesName = &debianQt6ModulesName;
-        debianModulesInBase = qt6ModulesInBase;
     }
-    QStringList modulesDepend;
-    println(proj.qtModules.join(", "));
-    for (QString moduleName : proj.qtModules)
-    {
-        if (debianModulesName->contains(moduleName))
-        {
-            modulesDepend.append((*debianModulesName)[moduleName]);
-        } else {
-            if (debianModulesInBase.contains(moduleName) == false)
-                error_and_exit("SQPackager doesn't know the debian package corresponding to the module name : " + moduleName);
-        }
-    }
+    QStringList modulesDepend = getModulesList(proj);
+    //println(proj.qtModules.join(", "));
     if (modulesDepend.isEmpty() == false)
     {
         map["QT_MODULES"] = modulesDepend.join(", ");
@@ -315,4 +315,47 @@ QString getDebianVersion(const ProjectDefinition& proj)
         debVersion = proj.version;
     }
     return debVersion;
+}
+
+static void setQMakeVersion(const ProjectDefinition& project)
+{
+    if (project.qtMajorVersion == "6")
+    {
+        qmakeExecutable = "qmake6";
+    }
+    if (project.qtMajorVersion == "auto")
+    {
+        println("No Qt major version provided, detecting qmake executable");
+        Runner testqmake;
+        bool ok = testqmake.run("qmake6", QStringList() << "--version");
+        if (ok)
+        {
+            qmakeExecutable = "qmake6";
+        } else {
+            println("\tqmake6 executable not found, falling back to qmake");
+        }
+    }
+}
+
+QStringList getModulesList(const ProjectDefinition& project)
+{
+    QStringList modulesDepend;
+    const QMap<QString, QString>* debianModulesName = &debianQt5ModulesName;
+    QStringList debianModulesInBase = qt5ModulesInBase;
+    if (qmakeExecutable == "qmake6")
+    {
+        debianModulesName = &debianQt6ModulesName;
+        debianModulesInBase = qt6ModulesInBase;
+    }
+    for (QString moduleName : project.qtModules)
+    {
+        if (debianModulesName->contains(moduleName))
+        {
+            modulesDepend.append((*debianModulesName)[moduleName]);
+        } else {
+            if (debianModulesInBase.contains(moduleName) == false)
+                error_and_exit("SQPackager doesn't know the debian package corresponding to the module name : " + moduleName);
+        }
+    }
+    return modulesDepend;
 }
