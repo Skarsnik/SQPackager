@@ -73,6 +73,7 @@ void    generateManPage(const ProjectDefinition& project)
     mapping["AUTHOR"] = project.author;
     mapping["AUTHOR_MAIL"] = project.authorMail;
     mapping["VERSION"] = project.version;
+    mapping["DATE"] = QDateTime::currentDateTime().toString("dd MMM yyyy");
 
     QFile manPageFile(project.basePath + "/" + project.targetName + ".manpage.1");
     if (!manPageFile.open(QIODevice::Text | QIODevice::WriteOnly))
