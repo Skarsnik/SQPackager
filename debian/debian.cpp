@@ -52,7 +52,7 @@ static void setQMakeVersion(const ProjectDefinition& project);
 
 void    prepareDebian(const ProjectDefinition& project)
 {
-    if (project.qtMajorVersion == "auto" || project.qtMajorVersion == "qt6")
+    if (project.qtMajorVersion == "auto" || project.qtMajorVersion == "6")
         qmakeExecutable = "qmake6";
     QStringList projectDeps = getModulesList(project);
     Runner run(true);
@@ -60,7 +60,7 @@ void    prepareDebian(const ProjectDefinition& project)
     aptGetInstallOptions << "--yes" << "install";
 
     println("Installing debian package creation tools");
-    run.run("sudo", QStringList() << "apt-get" << "--yes" << "install" << "build-essential" << "fakeroot" << "devscripts");
+    run.run("apt-get", QStringList() << aptGetInstallOptions << "build-essential" << "fakeroot" << "devscripts");
     println("Installing qt base dev package");
     if (qmakeExecutable == "qmake6")
         run.run("apt-get", QStringList() << aptGetInstallOptions << "qt6-base-dev");
@@ -287,7 +287,11 @@ void    buildDebian(const ProjectDefinition& project)
     run.runWithOut("cp", QStringList() << "-r" << projectBasePath << tmpPath);
     //debuild --no-tgz-check -us -uc -b
     println("Building the .deb package");
-    run.runWithOut("debuild", QStringList() << "-us" << "-uc" << "-b", tmpPath + "/" + subDir);
+    bool ok = run.runWithOut("debuild", QStringList() << "-us" << "-uc" << "-b", tmpPath + "/" + subDir);
+    if (!ok)
+    {
+        error_and_exit("Failed to build the debian package");
+    }
     if (isGithubAction())
     {
         println("Inside GitHub Action environement, adding the debian package as output");
@@ -319,9 +323,11 @@ QString getDebianVersion(const ProjectDefinition& proj)
 
 static void setQMakeVersion(const ProjectDefinition& project)
 {
+    println("Trying to detect Qt major version installed via qmake (or qmake6)");
     if (project.qtMajorVersion == "6")
     {
         qmakeExecutable = "qmake6";
+        return ;
     }
     if (project.qtMajorVersion == "auto")
     {
