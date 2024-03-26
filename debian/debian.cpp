@@ -60,7 +60,7 @@ void    prepareDebian(const ProjectDefinition& project)
     aptGetInstallOptions << "--yes" << "install";
 
     println("Installing debian package creation tools");
-    run.run("apt-get", QStringList() << aptGetInstallOptions << "build-essential" << "fakeroot" << "devscripts");
+    run.run("apt-get", QStringList() << aptGetInstallOptions << "build-essential" << "fakeroot" << "devscripts" << "debhelper");
     println("Installing qt base dev package");
     if (qmakeExecutable == "qmake6")
         run.run("apt-get", QStringList() << aptGetInstallOptions << "qt6-base-dev");
