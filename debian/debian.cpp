@@ -138,7 +138,8 @@ void    generateDebianFiles(ProjectDefinition& proj)
     map["QMAKE"] = qmakeExecutable;
     map["LRELEASE"] = lreleaseExecutable;
     map["PACKAGE_NAME"] = proj.debianPackageName;
-    map["PROJECT_FILE"] = proj.proFile;
+    QFileInfo fiPro(proj.proFile);
+    map["PRO_FILE"] = fiPro.fileName();
     const QStringList qmake_defines = {CompileDefines::debian_install, CompileDefines::installed};
     QString defines_option;
     for (auto define : qmake_defines)
@@ -286,7 +287,7 @@ void    buildDebian(const ProjectDefinition& project)
     run.runWithOut("rm", QStringList() << "-rf" << tmpPath);
     run.runWithOut("cp", QStringList() << "-r" << projectBasePath << tmpPath);
     //debuild --no-tgz-check -us -uc -b
-    run.runWithOut("ls", QStringList() << "-l" << tmpPath);
+    //run.runWithOut("ls", QStringList() << "-l" << tmpPath);
     println("Building the .deb package");
     bool ok = run.runWithOut("debuild", QStringList() << "-us" << "-uc" << "-b", tmpPath + "/" + subDir);
     if (!ok)
