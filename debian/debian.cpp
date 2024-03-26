@@ -286,6 +286,7 @@ void    buildDebian(const ProjectDefinition& project)
     run.runWithOut("rm", QStringList() << "-rf" << tmpPath);
     run.runWithOut("cp", QStringList() << "-r" << projectBasePath << tmpPath);
     //debuild --no-tgz-check -us -uc -b
+    run.runWithOut("ls", QStringList() << "-l" << tmpPath);
     println("Building the .deb package");
     bool ok = run.runWithOut("debuild", QStringList() << "-us" << "-uc" << "-b", tmpPath + "/" + subDir);
     if (!ok)
