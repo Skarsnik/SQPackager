@@ -3,12 +3,12 @@
 %:
 	dh $@
 override_dh_auto_configure:
-        %%QMAKE%% -makefile 'QMAKE_STRIP=:' 'PREFIX=/usr' %%QMAKE_OPTIONS%% %%PRO_FILE%%
+	%%QMAKE%% -makefile 'QMAKE_STRIP=:' 'PREFIX=/usr' %%QMAKE_OPTIONS%% %%PRO_FILE%%
 
 %%{IF HAS_TRANSLATIONS%%
 override_dh_auto_build:
 	dh_auto_build
-        %%LRELEASE%% %%PRO_FILE%%
+	%%LRELEASE%% %%PRO_FILE%%
 %%}IF%%
 
 override_dh_auto_install:
