@@ -306,7 +306,7 @@ void    buildDebian(const ProjectDefinition& project)
         //dpkg-parsechangelog -S version
         run.run("dpkg-parsechangelog", QStringList() << "-l" << tmpPath + "/debian/changelog" << "-S" << "version");
         QString packageVersion = run.getStdout().trimmed();
-        addGithubOutput("spackager_" + arch + "_deb", QString("/tmp/%1_%2_%3.deb").arg(project.debianPackageName, packageVersion, buildArch));
+        addGithubOutput("spackager_" + buildArch + "_deb", QString("/tmp/%1_%2_%3.deb").arg(project.debianPackageName, packageVersion, buildArch));
     }
 }
 
