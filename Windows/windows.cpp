@@ -728,8 +728,8 @@ void findQtVersion()
 
 static QMap<WindowsArch, WindowsBuild*> pickQtVersion(const ProjectDefinition& project)
 {
-    bool qt5Only = project.qtMajorVersion == "qt5";
-    bool qt6Only = project.qtMajorVersion == "qt6";
+    bool qt5Only = project.qtMajorVersion == "5";
+    bool qt6Only = project.qtMajorVersion == "6";
     QList<QtVersion> msvcQts;
     println("Number of Qt version found : " + QString::number(stuff.qtVersions.size()));
     for (QtVersion qtVer : stuff.qtVersions)
