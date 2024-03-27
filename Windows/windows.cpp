@@ -246,10 +246,12 @@ void    buildWindows(ProjectDefinition& project)
     QList<WindowsBuild> builds;
 
     QMapIterator<WindowsArch, WindowsBuild*> it(pickedBuild);
+    println(QString("Found %1 usable build").arg(pickedBuild.size()));
     while (it.hasNext())
     {
         it.next();
         WindowsBuild build = *it.value();
+        println("The following build with be used : " + build.toString());
         build.setStandalone(false);
         builds << build;
         build.setStandalone(true);
