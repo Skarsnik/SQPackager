@@ -43,7 +43,7 @@ ProjectDefinition    getProjectDescription(QString path)
     println("Project name is : " + obj["name"].toString() + "\n");
     ProjectDefinition def;
     def.name = obj["name"].toString();
-    def.targetName = def.name;
+    //def.targetName = def.name;
     QString tmpString = def.name;
     def.unixNormalizedName = tmpString.replace(" ", "-");
     def.author = obj["author"].toString();
@@ -148,13 +148,19 @@ void    extractInfosFromProFile(ProjectDefinition& def)
             QStringList qtmodule = stringDef.split(blankExp, Qt::SkipEmptyParts);
             def.qtModules = qtmodule;
         }
-        if (targetDef.match(line).hasMatch())
+        if (targetDef.match(line).hasMatch() && def.targetName.isEmpty())
         {
             auto targetMatch = targetDef.match(line);
             def.targetName = targetMatch.captured(1);
+            println("Target found in .pro file is : " + def.targetName);
         }
     }
-    println("Target found is : " + def.targetName);
+    if (def.targetName.isEmpty())
+    {
+        println("No target name specified and found in the .pro file, using the pro file base name as target (default qmake behavior)");
+        QFileInfo fi(def.proFile);
+        def.targetName = fi.baseName();
+    }
 }
 
 /*
