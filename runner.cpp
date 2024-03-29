@@ -68,6 +68,7 @@ bool Runner::runWithOut(QString command, QStringList args, QString workingDir)
         println(m_process.readAll());
         m_process.waitForReadyRead();
     }
+    m_process.waitForFinished();
     m_process.setWorkingDirectory(oldWD);
     m_process.setProcessChannelMode(oldMode);
     return m_process.exitCode() == 0;
