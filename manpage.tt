@@ -1,18 +1,18 @@
 .TH %%TARGET_NAME%% 1 "%%DATE%%" "version %%VERSION%%"
 
-." The name of the executable
+.\" The name of the executable
 .SH NAME
 %%TARGET_NAME%% - %%SHORT_DESCRIPTION%%
 
-." This is how you start your program and if there is any additional option
+.\" This is how you start your program and if there is any additional option
 .SH SYNOPSIS
 
 %%TARGET_NAME%%
 
-." The complete description
+.\" The complete description
 .SH DESCRIPTION
 %%LONG_DESCRIPTION%%
 
-." Auhtor infos
+.\" Auhtor infos
 .SH AUTHOR
 %%AUTHOR%% <%%AUTHOR_MAIL%%>
