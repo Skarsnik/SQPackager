@@ -62,13 +62,38 @@ ProjectDefinition    getProjectDescription(QString path)
         QFileInfo fi(basePath + "/" + obj.value("project-base-path").toString());
         def.projectBasePath = fi.absolutePath();
     }
+
     if (obj.contains("license-file"))
         def.licenseFile = obj["license-file"].toString();
     if (obj.contains("license-name"))
         def.licenseFile = obj["license-name"].toString();
-    def.qtMajorVersion = "auto";
+
+    def.version.type = VersionType::Auto;
+    if (obj.contains("version"))
+    {
+        QString versionString = obj["version"].toString();
+        if (versionString == "date")
+            def.version.type = VersionType::Date;
+        if (versionString == "git")
+            def.version.type = VersionType::Git;
+        if (def.version.type == VersionType::Auto)
+        {
+            def.version.type == VersionType::Forced;
+            def.version.forcedVersion = versionString;
+        }
+    }
+    def.qtMajorVersion = QtMajorVersion::Auto;
     if (obj.contains("qt-major-version"))
-        def.qtMajorVersion = obj["qt-major-version"].toString();
+    {
+        QString qtVersion = obj["qt-major-version"].toString();
+        if (qtVersion == "qt5" || qtVersion == "5")
+            def.qtMajorVersion = QtMajorVersion::Qt5;
+        if (qtVersion == "qt6" || qtVersion == "6")
+            def.qtMajorVersion = QtMajorVersion::Qt6;
+        if (def.qtMajorVersion == QtMajorVersion::Auto)
+            error_and_exit("Can't make sense of the <qt-major-version> field, accepted value are : qt5, 5, qt6, 6");
+    }
+
     if (obj.contains("target-name"))
         def.targetName = obj["target-name"].toString();
     if (obj.contains("translations-dir"))
@@ -172,68 +197,63 @@ void    extractInfosFromProFile(ProjectDefinition& def)
 
 void    findVersion(ProjectDefinition& proj)
 {
-    std::function<QString()> gitFind([basePath=proj.basePath] {
+    println("Trying to find project version");
+    if (proj.version.type == VersionType::Forced)
+    {
+        println("Project version is user specified : " + proj.version.forcedVersion);
+        return ;
+    }
+    if (proj.version.type == VersionType::Git || proj.version.type == VersionType::Auto)
+    {
+        println("Project version is determined by git or was not set");
         Runner run(true);
-        bool ok = run.run("git", basePath, QStringList() << "status");
-        if (!ok)
-            return QString();
-        run.run("git", basePath,  QStringList() << "rev-parse" << "--abbrev-ref" << "HEAD");
+        bool ok = run.run("git", proj.basePath, QStringList() << "status");
+        if (!ok && proj.version.type == VersionType::Auto)
+        {
+            println("Git failed, falling back to using current date");
+            proj.version.type = VersionType::Date;
+            proj.version.dateVersion = QDateTime::currentDateTime().toString("yyyy-MM-dd");
+            proj.version.simpleVersion = proj.version.dateVersion;
+            return ;
+        }
+        if (!ok && proj.version.type == VersionType::Git)
+        {
+            error_and_exit("\tGetting info from git failed");
+        }
+        run.run("git", proj.basePath,  QStringList() << "rev-parse" << "--abbrev-ref" << "HEAD");
         QString branchName = run.getStdout().trimmed();
-        // Checking if we are in a tag
-        ok = run.run("git", basePath, QStringList() << "describe" << "--tags" << "--exact-match");
+        // Trying to find if we are in tagged version
+        ok = run.run("git", proj.basePath, QStringList() << "describe" << "--tags" << "--exact-match");
         if (ok)
         {
-            QString out = run.getStdout();
-            return out.trimmed();
+            proj.version.gitTag = run.getStdout().trimmed();
         }
         // If not, get the nice tag-numberofcommit-commit format git gave us
-        ok = run.run("git", basePath, QStringList() << "describe" << "--tags");
+        ok = run.run("git", proj.basePath, QStringList() << "describe" << "--tags");
         if (ok)
+            proj.version.gitVersionString = run.getStdout().trimmed();
+        ok = run.run("git", proj.basePath, QStringList() << "rev-parse" << "--verify" << branchName);
+        proj.version.gitCommitId = run.getStdout().trimmed();
+        if (proj.version.gitVersionString.isEmpty())
         {
-            QString out = run.getStdout();
-            return out.trimmed();
+            if (proj.version.gitTag.isEmpty() == false)
+            {
+                proj.version.gitVersionString = proj.version.gitTag;
+                proj.version.simpleVersion = proj.version.gitTag;
+            } else {
+                proj.version.gitVersionString = proj.version.gitCommitId.left(8);
+                proj.version.simpleVersion = proj.version.gitVersionString;
+            }
         }
-        // If no tag, use the last commit hash first 8 characters
-        ok = run.run("git", basePath, QStringList() << "rev-parse" << "--verify" << branchName);
-        QString out = run.getStdout();
-        return out.left(8);
-    });
-    if (!proj.version.isEmpty())
-    {
-        println("Project version is user specified : " + proj.version);
         return ;
     }
-    if (proj.version == "git")
-    {
-        proj.version = gitFind();
-        println("Project version specified to use git");
-        if (proj.version.isEmpty())
-        {
-            error_and_exit("Did not managed to determine a version using git");
-        }
-        proj.versionType = "git";
-        println("Project version is " + proj.version);
-        return ;
-    }
-    if (proj.version == "date")
+    if (proj.version.type == VersionType::Date)
     {
         println("Project version specified to use current date");
-        proj.version = QDateTime::currentDateTime().toString("yyyy-MM-dd");
-        proj.versionType = "date";
-        println("Project version is " + proj.version);
+        proj.version.dateVersion = QDateTime::currentDateTime().toString("yyyy-MM-dd");
+        println("Project version is " + proj.version.dateVersion);
         return ;
     }
-    println("Trying to find project version");
-    proj.version = gitFind();
-    if (!proj.version.isEmpty())
-    {
-        println("Project version is " + proj.version);
-        proj.versionType = "git";
-        return ;
-    }
-    println("Git failed, falling back to using current date");
-    proj.version = QDateTime::currentDateTime().toString("yyyy-MM-dd");
-    println("Project version is " + proj.version);
 }
 
 const QMap<QString, QString> correctLicense = {

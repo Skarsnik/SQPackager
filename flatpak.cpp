@@ -58,11 +58,11 @@ void    generateFlatPakFile(ProjectDefinition& project)
         mapping["SUBDIR"] = "subdir: " + project.basePath.mid(project.projectBasePath.size() + 1);
     }
     //TODO maybe run flatpak search? for Qt versions
-    if (project.qtMajorVersion == "5")
+    if (project.qtMajorVersion == QtMajorVersion::Qt5)
     {
         mapping["KDE_SDK_VERSION"] = "5.15-22.08";
     }
-    if (project.qtMajorVersion == "6" || project.qtMajorVersion == "auto")
+    if (project.qtMajorVersion == QtMajorVersion::Qt6 || project.qtMajorVersion == QtMajorVersion::Auto)
     {
         kdeSdkVersion = "org.kde.Sdk/x86_64/6.4";
         plateformSdk = "org.kde.Plateform/x86_64/6.4";

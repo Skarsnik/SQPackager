@@ -19,6 +19,30 @@ struct ReleaseFile
     QString destination;
 };
 
+enum class QtMajorVersion {
+    Qt6,
+    Qt5,
+    Auto
+};
+
+enum class VersionType {
+    Forced,
+    Git,
+    Date,
+    Auto
+};
+
+struct ProjectVersion {
+    VersionType type;
+    QString forcedVersion;
+    QString dateVersion;
+    bool    useGit;
+    QString gitCommitId;
+    QString gitVersionString;
+    QString gitTag;
+    QString simpleVersion;
+};
+
 struct ProjectDefinition
 {
     QString     name;
@@ -41,12 +65,11 @@ struct ProjectDefinition
     QString     debianMaintainerMail;
     QString     debianPackageName;
     QString     proFile;
-    QString     versionType;
-    QString     version;
+    ProjectVersion     version;
     QString     readmeFile;
     QString     licenseFile;
     QString     licenseName;
-    QString     qtMajorVersion;
+    QtMajorVersion  qtMajorVersion;
     QString     desktopIcon;
     QString     desktopFile;
     QString     desktopFileNormalizedName;

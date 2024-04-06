@@ -89,8 +89,8 @@ struct WindowsBuild
         standalone = _standalone;
         m_projectBasePath = proj.basePath;
         setPath();
-        releaseNameFull = proj.name + "-" + proj.version + "-win32-" + archString;
-        releaseBaseName = proj.name + "-" + proj.version;
+        releaseNameFull = proj.name + "-" + proj.version.simpleVersion + "-win32-" + archString;
+        releaseBaseName = proj.name + "-" + proj.version.simpleVersion;
     }
     WindowsArch arch;
     QString     archString;
@@ -386,7 +386,7 @@ void    generateInstaller(const ProjectDefinition& project, const WindowsBuild& 
     QMap<QString, QString>   map;
 
     map["APP_NAME"] = project.name;
-    map["APP_VERSION"] = project.version;
+    map["APP_VERSION"] = project.version.simpleVersion;
     map["APP_EXE"] = build.executables.at(0);
     map["LICENCE_FILE"] = QFileInfo(project.licenseFile).fileName();
     if (build.arch == X64)
@@ -728,8 +728,8 @@ void findQtVersion()
 
 static QMap<WindowsArch, WindowsBuild*> pickQtVersion(const ProjectDefinition& project)
 {
-    bool qt5Only = project.qtMajorVersion == "5";
-    bool qt6Only = project.qtMajorVersion == "6";
+    bool qt5Only = project.qtMajorVersion == QtMajorVersion::Qt5;
+    bool qt6Only = project.qtMajorVersion == QtMajorVersion::Qt6;
     QList<QtVersion> msvcQts;
     println("Number of Qt version found : " + QString::number(stuff.qtVersions.size()));
     for (QtVersion qtVer : stuff.qtVersions)
@@ -748,7 +748,7 @@ static QMap<WindowsArch, WindowsBuild*> pickQtVersion(const ProjectDefinition& p
     {
         if ((qt5Only && qtVer.version.majorVersion() == 5) ||
             (qt6Only && qtVer.version.majorVersion() == 6) ||
-             project.qtMajorVersion == "auto")
+             project.qtMajorVersion == QtMajorVersion::Auto)
         {
             //println("Qt version : " + qtVer.toString());
             if (!maxQtVersions.contains(qtVer.arch) ||

@@ -50,7 +50,10 @@ int main(int argc, char *argv[])
     findLicense(project);
     findReadme(project);
     if (parser.isSet("version"))
-        project.version = parser.value("version");
+    {
+        project.version.type = VersionType::Forced;
+        project.version.forcedVersion = parser.value("version");
+    }
     else
     {
         findVersion(project);

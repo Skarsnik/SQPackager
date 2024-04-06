@@ -52,7 +52,7 @@ static void setQMakeVersion(const ProjectDefinition& project);
 
 void    prepareDebian(const ProjectDefinition& project)
 {
-    if (project.qtMajorVersion == "auto" || project.qtMajorVersion == "6")
+    if (project.qtMajorVersion == QtMajorVersion::Auto|| project.qtMajorVersion == QtMajorVersion::Qt6)
         qmakeExecutable = "qmake6";
     QStringList projectDeps = getModulesList(project);
     Runner run(true);
@@ -310,15 +310,26 @@ void    buildDebian(const ProjectDefinition& project)
     }
 }
 
+// [epoch:]upstream_version[-debian_revision]
 QString getDebianVersion(const ProjectDefinition& proj)
 {
     QString debVersion;
-    QVersionNumber tmp = QVersionNumber::fromString(proj.version);
+    QString version = proj.version.simpleVersion;
+    QVersionNumber tmp = QVersionNumber::fromString(version);
     if (tmp.isNull())
     {
-        debVersion = "1-" + proj.version;
+        if (version.startsWith('v'))
+        {
+            version.remove(0, 1);
+            return version;
+        }
+        if (proj.version.type == VersionType::Git && proj.version.gitTag.isEmpty())
+        {
+            return "1+git" + proj.version.gitVersionString;
+        }
+        debVersion = "1-" + version;
     } else {
-        debVersion = proj.version;
+        debVersion = version;
     }
     return debVersion;
 }
@@ -326,12 +337,12 @@ QString getDebianVersion(const ProjectDefinition& proj)
 static void setQMakeVersion(const ProjectDefinition& project)
 {
     println("Trying to detect Qt major version installed via qmake (or qmake6)");
-    if (project.qtMajorVersion == "6")
+    if (project.qtMajorVersion == QtMajorVersion::Qt6)
     {
         qmakeExecutable = "qmake6";
         return ;
     }
-    if (project.qtMajorVersion == "auto")
+    if (project.qtMajorVersion == QtMajorVersion::Auto)
     {
         println("No Qt major version provided, detecting qmake executable");
         Runner testqmake;
