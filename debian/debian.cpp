@@ -8,6 +8,7 @@
 #include <sqpackager.h>
 #include <compile_defines.h>
 #include <github.h>
+#include <QThread>
 
 
 const QMap<QString, QString> debianQt5ModulesName = {
@@ -296,6 +297,7 @@ void    buildDebian(const ProjectDefinition& project)
     }
     if (isGithubAction())
     {
+        QThread::sleep(1);
         println("Inside GitHub Action environement, adding the debian package as output");
         run.run("uname", QStringList() << "-m");
         QString arch = run.getStdout().trimmed();
