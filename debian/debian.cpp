@@ -315,6 +315,10 @@ QString getDebianVersion(const ProjectDefinition& proj)
 {
     QString debVersion;
     QString version = proj.version.simpleVersion;
+    if (proj.version.type == VersionType::Git && proj.version.gitTag.isEmpty())
+    {
+        return "1+git" + proj.version.gitVersionString;
+    }
     QVersionNumber tmp = QVersionNumber::fromString(version);
     if (tmp.isNull())
     {
@@ -322,10 +326,6 @@ QString getDebianVersion(const ProjectDefinition& proj)
         {
             version.remove(0, 1);
             return version;
-        }
-        if (proj.version.type == VersionType::Git && proj.version.gitTag.isEmpty())
-        {
-            return "1+git" + proj.version.gitVersionString;
         }
         debVersion = "1-" + version;
     } else {

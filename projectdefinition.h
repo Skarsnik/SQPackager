@@ -36,7 +36,6 @@ struct ProjectVersion {
     VersionType type;
     QString forcedVersion;
     QString dateVersion;
-    bool    useGit;
     QString gitCommitId;
     QString gitVersionString;
     QString gitTag;

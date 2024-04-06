@@ -216,6 +216,7 @@ void    findVersion(ProjectDefinition& proj)
             proj.version.simpleVersion = proj.version.dateVersion;
             return ;
         }
+        proj.version.type = VersionType::Git;
         if (!ok && proj.version.type == VersionType::Git)
         {
             error_and_exit("\tGetting info from git failed");
@@ -245,6 +246,7 @@ void    findVersion(ProjectDefinition& proj)
                 proj.version.simpleVersion = proj.version.gitVersionString;
             }
         }
+        println("Project version is " + proj.version.simpleVersion);
         return ;
     }
     if (proj.version.type == VersionType::Date)
