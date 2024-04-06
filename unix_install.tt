@@ -54,7 +54,7 @@ install_directory() {
     cd -
 }
 install_file() {
-    install -v -D "$1" "$APPLICATION_SHARE/$2"
+    install -v -m $3 -D "$1" "$APPLICATION_SHARE/$2"
 }
 %%RELEASE_FILES_STRING%%
 %%}IF%%

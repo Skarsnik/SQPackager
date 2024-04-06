@@ -47,7 +47,10 @@ void    generateUnixInstallFile(const ProjectDefinition& project)
                 {
                     mapping["RELEASE_FILES_STRING"] += "install_directory \"" + releaseInfo.source + "\"  \"" + releaseInfo.destination + "\"\n";
                 } else {
-                    mapping["RELEASE_FILES_STRING"] += "install_file \"" + releaseInfo.source + "\" \"" + releaseInfo.destination + "\"\n";
+                    QString perm = "644";
+                    if (fi.isExecutable())
+                        perm = "755";
+                    mapping["RELEASE_FILES_STRING"] += "install_file \"" + releaseInfo.source + "\" \"" + releaseInfo.destination + "\" \"" + perm + "\"\n";
                 }
             }
         }
