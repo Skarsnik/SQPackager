@@ -108,7 +108,7 @@ void    generateDebianFiles(ProjectDefinition& proj)
     println("Creating Changelog");
     Runner run(true);
     run.addEnv("DEBEMAIL", proj.debianMaintainerMail);
-    run.addEnv("DEBFULNAME", proj.debianMaintainer);
+    run.addEnv("DEBFULLNAME", proj.debianMaintainer);
     run.runWithOut("dch", QStringList() << "--create" << "-v" << debianVersion << "--package" << proj.debianPackageName << "Initial release generated with SQPackager", proj.basePath);
     // Changelog dch --create -v 1.0-1 --package hithere
     println("Creating compat file");
