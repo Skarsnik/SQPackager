@@ -304,7 +304,7 @@ void    buildDebian(const ProjectDefinition& project)
         QString arch = run.getStdout().trimmed();
         QString buildArch = "";
         if (arch == "x86_64")
-            buildArch = "adm64";
+            buildArch = "amd64";
         println("Finding the package version");
         //dpkg-parsechangelog -S version
         run.run("dpkg-parsechangelog", QStringList() << "-l" << tmpPath + "/debian/changelog" << "-S" << "version");
