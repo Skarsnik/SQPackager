@@ -38,6 +38,7 @@ RESOURCES += templates.qrc
 DISTFILES += \
     debian/control_template.tt \
     debian/rules_template.tt \
+    desktop_template.tt \
     flatpak/installenv.sh \
     unix_install.tt
 

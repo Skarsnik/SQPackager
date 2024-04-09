@@ -63,10 +63,11 @@ void    prepareDebian(const ProjectDefinition& project)
     println("Installing debian package creation tools");
     run.run("apt-get", QStringList() << aptGetInstallOptions << "build-essential" << "fakeroot" << "devscripts" << "debhelper");
     println("Installing qt base dev package");
+    // lrelease is in a separate package, weird
     if (qmakeExecutable == "qmake6")
-        run.run("apt-get", QStringList() << aptGetInstallOptions << "qt6-base-dev");
+        run.run("apt-get", QStringList() << aptGetInstallOptions << "qt6-base-dev" << "qt6-l10n-tools" << "qt6-tools-dev-tools");
     else
-        run.run("apt-get", QStringList() << aptGetInstallOptions << "qtbase5-dev");
+        run.run("apt-get", QStringList() << aptGetInstallOptions << "qtbase5-dev" << "qttools5-dev-tools");
     if (projectDeps.isEmpty() == false)
     {
         println("Installing additionnal(s) Qt module(s)");
