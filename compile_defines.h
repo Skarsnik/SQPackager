@@ -4,13 +4,13 @@
 
 namespace CompileDefines
 {
-    QString installed = "SQPROJECT_INSTALLED";
-    QString standalone = "SQPROJECT_STANDALONE";
-    QString unix_install_prefix = "SQPROJECT_UNIX_INSTALL_PREFIX";
-    QString windows_install = "SQPROJECT_WINDOWS_INSTALL";
-    QString debian_install = "SQPROJECT_DEBIAN_INSTALL";
-    QString flatpak_install = "SQPROJECT_FLATPAK_INSTALL";
-    QString unix_install_share_path = "SQPROJECT_UNIX_APP_SHARE";
+    const QString installed = "SQPROJECT_INSTALLED";
+    const QString standalone = "SQPROJECT_STANDALONE";
+    const QString unix_install_prefix = "SQPROJECT_UNIX_INSTALL_PREFIX";
+    const QString windows_install = "SQPROJECT_WINDOWS_INSTALL";
+    const QString debian_install = "SQPROJECT_DEBIAN_INSTALL";
+    const QString flatpak_install = "SQPROJECT_FLATPAK_INSTALL";
+    const QString unix_install_share_path = "SQPROJECT_UNIX_APP_SHARE";
 }
 
 #endif // COMPILE_DEFINES_H

@@ -10,6 +10,7 @@
 #include <basestuff.h>
 #include <runner.h>
 #include <QTemporaryDir>
+#include <compile_defines.h>
 
 enum WindowsArch {
     X86,
@@ -572,10 +573,10 @@ void    buildProject(Runner& runner, const ProjectDefinition& project, WindowsBu
     if (buildInfo.standalone)
     {
         sqprojectOptions << "DEFINES+=SQPROJECT_WIN32_STANDALONE 1";
-        sqprojectOptions << "DEFINES+=SQPROJECT_STANDALONE 1";
+        sqprojectOptions << "DEFINES+=" + CompileDefines::standalone + " 1";
     } else {
-        sqprojectOptions << "DEFINES+=SQPROJECT_WIN32_INSTALL 1";
-        sqprojectOptions << "DEFINES+=SQPROJECT_INSTALL 1";
+        sqprojectOptions << "DEFINES+=" + CompileDefines::windows_install + " 1";
+        sqprojectOptions << "DEFINES+=" + CompileDefines::installed + " 1";
     }
     if (!sqprojectOptions.isEmpty())
         qmakeOptions.append(sqprojectOptions);
