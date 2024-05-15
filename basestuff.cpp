@@ -224,25 +224,32 @@ void    findVersion(ProjectDefinition& proj)
         run.run("git", proj.basePath,  QStringList() << "rev-parse" << "--abbrev-ref" << "HEAD");
         QString branchName = run.getStdout().trimmed();
         // Trying to find if we are in tagged version
-        ok = run.runWithOut("git", QStringList() << "describe" << "--tags" << "--exact-match", proj.basePath);
+        ok = run.run("git", proj.basePath, QStringList() << "describe" << "--tags" << "--exact-match");
         if (ok)
         {
             println("We are on a tagged version");
-            proj.version.gitTag = run.getStdout().trimmed();
+            QString plop = run.getStdout();
+            //println("Plop : " + plop);
+            proj.version.gitTag = plop.trimmed();
+        } else {
+            // If not, get the nice tag-numberofcommit-commit format git gave us
+            ok = run.run("git", proj.basePath, QStringList() << "describe" << "--tags");
+            if (ok)
+            {
+                proj.version.gitVersionString = run.getStdout().trimmed();
+                //proj.version.simpleVersion = proj.version.gitVersionString;
+            }
         }
-        // If not, get the nice tag-numberofcommit-commit format git gave us
-        ok = run.runWithOut("git", QStringList() << "describe" << "--tags", proj.basePath);
-        if (ok)
-        {
-            proj.version.gitVersionString = run.getStdout().trimmed();
-            //proj.version.simpleVersion = proj.version.gitVersionString;
-        }
-        ok = run.runWithOut("git", QStringList() << "rev-parse" << "--verify" << branchName, proj.basePath);
+        ok = run.run("git", proj.basePath, QStringList() << "rev-parse" << "--verify" << branchName);
         proj.version.gitCommitId = run.getStdout().trimmed();
+/*        println("Git version string" + proj.version.gitVersionString);
+        println("Is empty : " + QString::number(proj.version.gitVersionString.isEmpty()));*/
         if (proj.version.gitVersionString.isEmpty())
         {
+            //println("Git tag " + proj.version.gitTag);
             if (proj.version.gitTag.isEmpty() == false)
             {
+                //println("Setting version");
                 proj.version.gitVersionString = proj.version.gitTag;
                 proj.version.simpleVersion = proj.version.gitTag;
             } else {
