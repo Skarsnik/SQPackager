@@ -227,6 +227,7 @@ void    findVersion(ProjectDefinition& proj)
         ok = run.runWithOut("git", QStringList() << "describe" << "--tags" << "--exact-match", proj.basePath);
         if (ok)
         {
+            println("We are on a tagged version");
             proj.version.gitTag = run.getStdout().trimmed();
         }
         // If not, get the nice tag-numberofcommit-commit format git gave us
