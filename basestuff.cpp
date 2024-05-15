@@ -232,7 +232,10 @@ void    findVersion(ProjectDefinition& proj)
         // If not, get the nice tag-numberofcommit-commit format git gave us
         ok = run.run("git", proj.basePath, QStringList() << "describe" << "--tags");
         if (ok)
+        {
             proj.version.gitVersionString = run.getStdout().trimmed();
+            //proj.version.simpleVersion = proj.version.gitVersionString;
+        }
         ok = run.run("git", proj.basePath, QStringList() << "rev-parse" << "--verify" << branchName);
         proj.version.gitCommitId = run.getStdout().trimmed();
         if (proj.version.gitVersionString.isEmpty())

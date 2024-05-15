@@ -17,6 +17,7 @@ public:
 
     bool        pathContains(QString path);
     void        addPath(QString path);
+    const int   exitCode() const;
     QByteArray  getStdout();
     QByteArray  getStderr();
     QProcessEnvironment env() const;

@@ -89,6 +89,11 @@ void Runner::addPath(QString toAdd)
     m_process.setProcessEnvironment(env);
 }
 
+const int Runner::exitCode() const
+{
+    return m_process.exitCode();
+}
+
 QByteArray Runner::getStdout()
 {
     return m_process.readAllStandardOutput();

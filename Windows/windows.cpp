@@ -447,45 +447,32 @@ void    deployExtras(ProjectDefinition& project, const WindowsBuild& build)
     println("Checking and deploying extra files (Readme, License)");
     QDir projectDir(project.basePath);
     QDir deployDir(build.deployFullPath);
-    bool hasReadme = !project.licenseFile.isEmpty();
-    bool hasLicence = !project.readmeFile.isEmpty();
-    //NOTE LICENCE AND LICENSE ARE VALID
-    for (const QFileInfo& s : deployDir.entryInfoList())
+    if (project.readmeFile.isEmpty() == false)
     {
-        if (!hasReadme && s.fileName().toLower() == "readme.txt")
-            hasReadme = true;
-        if (!hasLicence && (s.baseName().contains("license") || s.baseName().contains("licence")))
-            hasLicence = true;
+        QFile::copy(project.projectBasePath + "/" + project.readmeFile, build.deployFullPath + "/Readme.txt");
     }
-    for (const QFileInfo& fi : projectDir.entryInfoList())
-    {
-        if (!hasReadme &&
-                      (fi.fileName().toLower() == "readme.md"
-                       || fi.fileName().toLower() == "readme.txt"
-                      ))
-        {
-            println("Did not find a Readme file, copying <" + fi.fileName() + "> has Readme.txt");
-            QFile::copy(fi.absoluteFilePath(), build.deployFullPath + "/Readme.txt");
-            project.readmeFile = build.deployFullPath + "/Readme.txt";
-        }
-        if (!hasLicence && (fi.fileName().toLower().contains("license") || fi.fileName().toLower().contains("licence")))
-        {
-            QString optExt = fi.suffix().isEmpty() ? ".txt" : "";
-            println("Did not find a License file, copying <" + fi.fileName() + "> to the deploy path");
-            QFile::copy(fi.absoluteFilePath(), build.deployFullPath + "/" + fi.fileName() + optExt);
-            project.licenseFile = build.deployFullPath + "/" + fi.fileName() + optExt;
-        }
-    }
+    QFileInfo fiLicence(project.licenseFile);
+    QFile::copy(project.projectBasePath + "/" + project.licenseFile, build.deployFullPath + "/" + fiLicence.fileName());
     if (!project.releaseFiles.isEmpty())
         println("Deploying release files defined in the project");
     for (ReleaseFile file : project.releaseFiles)
     {
-        bool ok;
+        bool ok = true;
         println("Deploying " + file.name + "- From : " + file.source + " - To : " + file.destination);
         QString fullDest = deployDir.absolutePath() + "/" + file.destination;
         if (file.type == Local)
         {
-            ok = QFile::copy(projectDir.absolutePath() + "/" + file.source, fullDest);
+            QFileInfo sourceFi(project.projectBasePath + "/" + file.source);
+            if (sourceFi.isDir() == true)
+            {
+                Runner run(true);
+                //Power shell Copy-Item -Path C:\MyFolder -Destination \\Server\MyFolder -recurse -Force
+                //robocopy C:\example D:\example /E
+                run.runWithOut("robocopy", QStringList() << sourceFi.absoluteFilePath() << build.deployFullPath + "\\" + file.destination << "/E");
+                ok = run.exitCode() == 1;
+            } else {
+                ok = QFile::copy(projectDir.absolutePath() + "/" + file.source, fullDest);
+            }
             if (!ok)
             {
                 error_and_exit("Could not copy one of the project file : " + file.name + " - " + file.source);
