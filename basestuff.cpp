@@ -224,19 +224,19 @@ void    findVersion(ProjectDefinition& proj)
         run.run("git", proj.basePath,  QStringList() << "rev-parse" << "--abbrev-ref" << "HEAD");
         QString branchName = run.getStdout().trimmed();
         // Trying to find if we are in tagged version
-        ok = run.run("git", proj.basePath, QStringList() << "describe" << "--tags" << "--exact-match");
+        ok = run.runWithOut("git", QStringList() << "describe" << "--tags" << "--exact-match", proj.basePath);
         if (ok)
         {
             proj.version.gitTag = run.getStdout().trimmed();
         }
         // If not, get the nice tag-numberofcommit-commit format git gave us
-        ok = run.run("git", proj.basePath, QStringList() << "describe" << "--tags");
+        ok = run.runWithOut("git", QStringList() << "describe" << "--tags", proj.basePath);
         if (ok)
         {
             proj.version.gitVersionString = run.getStdout().trimmed();
             //proj.version.simpleVersion = proj.version.gitVersionString;
         }
-        ok = run.run("git", proj.basePath, QStringList() << "rev-parse" << "--verify" << branchName);
+        ok = run.runWithOut("git", QStringList() << "rev-parse" << "--verify" << branchName, proj.basePath);
         proj.version.gitCommitId = run.getStdout().trimmed();
         if (proj.version.gitVersionString.isEmpty())
         {
