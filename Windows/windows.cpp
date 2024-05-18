@@ -1,3 +1,4 @@
+#include "github.h"
 #include <QFile>
 #include <QDir>
 #include <QRegularExpression>
@@ -283,29 +284,24 @@ void    buildWindows(ProjectDefinition& project)
         println("Standalone 7zip :" + QDir::toNativeSeparators(plop.standalone7Zip));
         println("Inno Setup file :" + QDir::toNativeSeparators(plop.innoSetup));
     }
-    if (QProcessEnvironment::systemEnvironment().contains("GITHUB_OUTPUT"))
+    if (isGithubAction())
     {
-        QFile githubOutput(QProcessEnvironment::systemEnvironment().value("GITHUB_OUTPUT"));
-        if (githubOutput.open(QIODevice::Text | QIODevice::Append))
+        for (WindowsArch arch : releaseFiles.keys())
         {
-            for (WindowsArch arch : releaseFiles.keys())
+            ReleaseFiles& plop = releaseFiles[arch];
+            QString nativeFilePath = QDir::toNativeSeparators(plop.standaloneZip);
+            addGithubOutput("sqpackager_win32_" + archToString[arch] + "_standalone_zip", nativeFilePath);
+            if (plop.standalone7Zip.isEmpty() == false)
             {
-                ReleaseFiles& plop = releaseFiles[arch];
-                QString nativeFilePath = QDir::toNativeSeparators(plop.standaloneZip);
-                githubOutput.write(QString("sqpackager_win32_" + archToString[arch] + "_standalone_zip=" + nativeFilePath + "\n").toLatin1());
-                if (plop.standalone7Zip.isEmpty() == false)
-                {
-                    nativeFilePath = QDir::toNativeSeparators(plop.standalone7Zip);
-                    githubOutput.write(QString("sqpackager_win32_" + archToString[arch] + "_standalone_7zip=" + nativeFilePath + "\n").toLatin1());
-                }
-                if (plop.innoSetup.isEmpty() == false)
-                {
-                    nativeFilePath = QDir::toNativeSeparators(plop.innoSetup);
-                    githubOutput.write(QString("sqpackager_win32_" + archToString[arch] + "_innosetup=" + nativeFilePath + "\n").toLatin1());
-                }
+                nativeFilePath = QDir::toNativeSeparators(plop.standalone7Zip);
+                addGithubOutput("sqpackager_win32_" + archToString[arch] + "_standalone_7zip", nativeFilePath);
+            }
+            if (plop.innoSetup.isEmpty() == false)
+            {
+                nativeFilePath = QDir::toNativeSeparators(plop.innoSetup);
+                addGithubOutput("sqpackager_win32_" + archToString[arch] + "_innosetup", nativeFilePath);
             }
         }
-        githubOutput.close();
     }
 }
 
