@@ -291,15 +291,18 @@ void    buildWindows(ProjectDefinition& project)
             ReleaseFiles& plop = releaseFiles[arch];
             QString nativeFilePath = QDir::toNativeSeparators(plop.standaloneZip);
             addGithubOutput("sqpackager_win32_" + archToString[arch] + "_standalone_zip", nativeFilePath);
+            addGithubOutput("sqpackager_win32_" + archToString[arch] + "_standalone_zip_non_native_path", plop.standaloneZip);
             if (plop.standalone7Zip.isEmpty() == false)
             {
                 nativeFilePath = QDir::toNativeSeparators(plop.standalone7Zip);
                 addGithubOutput("sqpackager_win32_" + archToString[arch] + "_standalone_7zip", nativeFilePath);
+                addGithubOutput("sqpackager_win32_" + archToString[arch] + "_standalone_7zip_non_native_path", plop.standalone7Zip);
             }
             if (plop.innoSetup.isEmpty() == false)
             {
                 nativeFilePath = QDir::toNativeSeparators(plop.innoSetup);
                 addGithubOutput("sqpackager_win32_" + archToString[arch] + "_innosetup", nativeFilePath);
+                addGithubOutput("sqpackager_win32_" + archToString[arch] + "_innosetup_non_native_path", plop.innoSetup);
             }
         }
     }
