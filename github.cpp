@@ -17,7 +17,7 @@ void    addGithubOutput(QString key, QString value)
     {
         error_and_exit("Can't open GITHUB_OUPUT file : " + githubOutput.errorString());
     }
-    githubOutput.write(QString("%1=%2").arg(key, value).toLatin1());
+    githubOutput.write(QString("%1=%2\n").arg(key, value).toLatin1());
     println(QString("Added %1 to GITHUB_OUTPUT as : %2").arg(key, value));
 }
 
