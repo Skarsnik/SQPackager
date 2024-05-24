@@ -5,6 +5,7 @@
 #include "basestuff.h"
 #include "print.h"
 #include "runner.h"
+#include <compile_defines.h>
 
 void    generateUnixInstallFile(const ProjectDefinition& project)
 {
@@ -20,6 +21,12 @@ void    generateUnixInstallFile(const ProjectDefinition& project)
     mapping["NORMALIZED_PROJECT_ICON_PATH"] = project.desktopIconNormalizedName;
     mapping["PROJECT_ICON_FILE"] = project.icon;
     mapping["ICON_SIZE"] = QString("%1x%2").arg(project.iconSize.width()).arg(project.iconSize.height());
+    mapping["DEFINE_INSTALLED"] = CompileDefines::installed;
+    mapping["DEFINE_INSTALL_PREFIX"] = CompileDefines::unix_install_prefix;
+    mapping["DEFINE_APP_SHARE"] = CompileDefines::unix_install_share_path;
+    mapping["DEFAULT_QMAKE_EXEC"] = "qmake6";
+    if (project.qtMajorVersion == QtMajorVersion::Qt5)
+        mapping["DEFAULT_QMAKE_EXEC"] = "qmake";
     if (project.readmeFile.isEmpty() == false)
     {
         mapping["HAS_README"] = "";

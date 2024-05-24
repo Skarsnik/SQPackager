@@ -40,5 +40,6 @@ DISTFILES += \
     debian/rules_template.tt \
     desktop_template.tt \
     flatpak/installenv.sh \
+    flatpak/sqpackager_build.tt \
     unix_install.tt
 

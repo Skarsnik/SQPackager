@@ -143,15 +143,15 @@ void    generateDebianFiles(ProjectDefinition& proj)
     map["PACKAGE_NAME"] = proj.debianPackageName;
     QFileInfo fiPro(proj.proFile);
     map["PRO_FILE"] = fiPro.fileName();
-    const QStringList qmake_defines = {CompileDefines::debian_install, CompileDefines::installed};
+    const QStringList qmake_defines = {CompileDefines::debian_install};
     QString defines_option;
     for (auto define : qmake_defines)
     {
         defines_option += "DEFINES+=\"" + define + "\" ";
     }
-    defines_option += "DEFINES+='" + CompileDefines::unix_install_prefix + "=\\\\\\\"/usr/\\\\\\\"' ";
-    defines_option += "DEFINES+='" + CompileDefines::unix_install_share_path + "=\\\\\\\"/usr/share/" + proj.unixNormalizedName + "\\\\\\\"' ";
-    map["QMAKE_OPTIONS"] = defines_option +  " CONFIG+=\"release no_batch\"";
+    //defines_option += "DEFINES+='" + CompileDefines::unix_install_prefix + "=\\\\\\\"/usr/\\\\\\\"' ";
+    //defines_option += "DEFINES+='" + CompileDefines::unix_install_share_path + "=\\\\\\\"/usr/share/" + proj.unixNormalizedName + "\\\\\\\"' ";
+    map["QMAKE_OPTIONS"] = defines_option +  " CONFIG+=\\'release\\'";
     if (proj.translationDir.isEmpty() == false)
     {
         map["HAS_TRANSLATIONS"] = "yes";

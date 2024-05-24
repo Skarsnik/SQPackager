@@ -3,13 +3,13 @@
 %:
 	dh $@
 override_dh_auto_configure:
-	%%QMAKE%% -makefile 'QMAKE_STRIP=:' 'PREFIX=/usr' %%QMAKE_OPTIONS%% %%PRO_FILE%%
+	sh ./sqpackager_unix_installer.sh --build --skip-make -qmake-cmd %%QMAKE%% --compile-prefix /usr --prefix $$(pwd)/debian/%%PACKAGE_NAME%%/usr/ 'QMAKE_STRIP=:' 'PREFIX=/usr' %%QMAKE_OPTIONS%% ../%%PRO_FILE%%
 
-%%{IF HAS_TRANSLATIONS%%
 override_dh_auto_build:
-	dh_auto_build
+	dh_auto_build -- --directory=project_build_dir
+%%{IF HAS_TRANSLATIONS%%
 	%%LRELEASE%% %%PRO_FILE%%
 %%}IF%%
 
 override_dh_auto_install:
-	sh ./sqpackager_unix_installer.sh --prefix $$(pwd)/debian/%%PACKAGE_NAME%%/usr/
+	sh ./sqpackager_unix_installer.sh --install --prefix $$(pwd)/debian/%%PACKAGE_NAME%%/usr/
