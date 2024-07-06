@@ -16,5 +16,6 @@ bool                generateLinuxDesktopRC(ProjectDefinition& proj);
 void                generateUnixInstallFile(const ProjectDefinition& project);
 void                generateManPage(const ProjectDefinition& project);
 QString             checkForFile(const QString path, const QRegularExpression searchPattern);
+QString             createArchive(const ProjectDefinition& project, QString version = QString());
 
 #endif // BASESTUFF_H

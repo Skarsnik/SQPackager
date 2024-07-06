@@ -99,7 +99,35 @@ void    generateManPage(const ProjectDefinition& project)
     println("\tManpage " + project.targetName + ".manpage.1 file created");
 }
 
-void    createArchive(const ProjectDefinition& project)
+QString    createArchive(const ProjectDefinition& project, QString version)
 {
+    Runner run(true);
 
+    QStringList excludeList;
+    QString versionString = project.version.simpleVersion;
+
+    if (version.isEmpty() == false)
+    {
+        versionString = version;
+    }
+
+    QDir projectDir(project.basePath);
+    if (projectDir.exists(".git") == true)
+    {
+        excludeList << "--exclude" << ".git*";
+    }
+
+    QFileInfo fi(project.basePath);
+
+    QString archiveFile = fi.absoluteFilePath() + "/" + fi.baseName().toLower() + "-" + versionString + ".tar.gz";
+    QFile newPri(fi.absoluteFilePath() + "/sq_project_forced_version.pri");
+    if (newPri.open(QIODevice::WriteOnly) == false)
+    {
+        error_and_exit("Could not create the forced version pri file");
+    }
+    newPri.write(QByteArray("SQ_PROJECT_FORCED_VERSION = " + project.version.simpleVersion.toLocal8Bit() + "\n"));
+    newPri.close();
+    run.runWithOut("tar", QStringList() << "--transform" << "s,^," + fi.baseName().toLower() + "-" + versionString + "/," << excludeList << "--exclude-vcs" << "-zcf" << archiveFile << ".", fi.absoluteFilePath());
+    run.run("rm", QStringList() << fi.absoluteFilePath() + "/sq_project_forced_version.pri");
+    return archiveFile;
 }

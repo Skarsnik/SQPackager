@@ -151,7 +151,7 @@ void    generateDebianFiles(ProjectDefinition& proj)
     }
     //defines_option += "DEFINES+='" + CompileDefines::unix_install_prefix + "=\\\\\\\"/usr/\\\\\\\"' ";
     //defines_option += "DEFINES+='" + CompileDefines::unix_install_share_path + "=\\\\\\\"/usr/share/" + proj.unixNormalizedName + "\\\\\\\"' ";
-    map["QMAKE_OPTIONS"] = defines_option +  " CONFIG+=\\'release\\'";
+    map["QMAKE_OPTIONS"] = defines_option +  " CONFIG+=\\'debug\\'";
     if (proj.translationDir.isEmpty() == false)
     {
         map["HAS_TRANSLATIONS"] = "yes";
@@ -291,14 +291,21 @@ void    buildDebian(const ProjectDefinition& project)
     QString debianVersion = getDebianVersion(project);
     QString debianNormalizedName = project.debianPackageName + "_" + debianVersion;
     Runner  run(true);
-    println("Copying project files into another directory");
-    QString tmpPath = "/tmp/" + debianNormalizedName;
-    run.runWithOut("rm", QStringList() << "-rf" << tmpPath);
-    run.runWithOut("cp", QStringList() << "-r" << projectBasePath << tmpPath);
+    QString archive = createArchive(project);
+    QFileInfo fiArchive(archive);
+
+    //println("Copying project files into another directory");
+    QString tmpSqpackager = "/tmp/sqpackager/";
+    QString tmpPath = tmpSqpackager + fiArchive.fileName().replace(".tar.gz", "");
+    run.runWithOut("rm", QStringList() << "-rf" << tmpSqpackager, "/tmp/");
+    run.runWithOut("mkdir", QStringList() << "-v" << tmpSqpackager, "/tmp");
+    run.runWithOut("cp", QStringList() << archive << debianNormalizedName + ".orig.tar.gz", tmpSqpackager);
+    run.runWithOut("tar", QStringList() << "-xzf" << archive, tmpSqpackager);
+    /*run.runWithOut("cp", QStringList() << "-r" << projectBasePath << tmpPath);*/
     //debuild --no-tgz-check -us -uc -b
     //run.runWithOut("ls", QStringList() << "-l" << tmpPath);
     println("Building the .deb package");
-    bool ok = run.runWithOut("debuild", QStringList() << "-us" << "-uc" << "-b", tmpPath + "/" + subDir);
+    bool ok = run.runWithOut("debuild", QStringList() << "-us" << "-uc", tmpPath + "/" + subDir);
     if (!ok)
     {
         error_and_exit("Failed to build the debian package");

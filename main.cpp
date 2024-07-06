@@ -59,7 +59,8 @@ int main(int argc, char *argv[])
     {
         findVersion(project);
     }
-
+    /*println(createArchive(project));
+    exit(0);*/
     // Windows Stuff
     if (parser.isSet("windows-build-path"))
         gOptions.windowsBuildPath = parser.value("windows-build-path");
