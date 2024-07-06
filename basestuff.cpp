@@ -136,10 +136,19 @@ void    handleFiles(ProjectDefinition& def, QJsonObject& obj)
     QJsonObject fileObj = obj["files"].toObject();
     for (const QString& key : fileObj.keys())
     {
+        QString dest = key;
+        if (key.left(6) == "WIN32:")
+        {
+            if (QSysInfo::productType() != "windows")
+            {
+                continue;
+            }
+            dest = key.mid(6);
+        }
         QString value = fileObj[key].toString();
         ReleaseFile relFile;
-        relFile.name = QFileInfo(key).baseName();
-        relFile.destination = key;
+        relFile.name = QFileInfo(dest).baseName();
+        relFile.destination = dest;
         relFile.type = Local;
         relFile.source = value;
         if (value.startsWith("http://") || value.startsWith("https://"))
