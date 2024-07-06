@@ -39,6 +39,7 @@ struct ProjectVersion {
     QString gitCommitId;
     QString gitVersionString;
     QString gitTag;
+    QString gitLastTag;
     QString simpleVersion;
 };
 

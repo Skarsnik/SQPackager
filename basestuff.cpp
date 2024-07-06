@@ -22,13 +22,13 @@ ProjectDefinition    getProjectDescription(QString path)
 {
     QString jsonPath = "sqproject.json";
     QString basePath = QDir::currentPath();
-    if (!path.isEmpty())
+    if (path.isEmpty() == false)
     {
         jsonPath = path;
         basePath = QFileInfo(path).absolutePath();
     }
     QFile   desc(jsonPath);
-    if (!desc.open(QIODevice::ReadOnly))
+    if (desc.open(QIODevice::ReadOnly) == false)
         error_and_exit("Can't open the project description file : " + desc.errorString());
     QByteArray json = desc.readAll();
     QJsonParseError* err = nullptr;
@@ -78,7 +78,7 @@ ProjectDefinition    getProjectDescription(QString path)
             def.version.type = VersionType::Git;
         if (def.version.type == VersionType::Auto)
         {
-            def.version.type == VersionType::Forced;
+            def.version.type = VersionType::Forced;
             def.version.forcedVersion = versionString;
         }
     }
@@ -107,6 +107,7 @@ ProjectDefinition    getProjectDescription(QString path)
         def.desktopFile = obj["desktop-file"].toString();
     }
     def.desktopFileNormalizedName = def.org + "." + def.unixNormalizedName + ".desktop";
+    def.desktopIconNormalizedName = def.org + "." + def.unixNormalizedName;
     def.desktopIcon = "";
     if (obj.contains("desktop-icon"))
         def.desktopIcon = obj.value("desktop-icon").toString();
@@ -118,6 +119,15 @@ ProjectDefinition    getProjectDescription(QString path)
         }
     }
     def.debianPackageName = def.name.toLower();
+    if (obj.contains("debian-maintainer"))
+    {
+        def.debianMaintainer = obj.value("debian-maintainer").toString();
+    }
+    if (obj.contains("debian-maintainer-mail"))
+    {
+        def.debianMaintainerMail = obj.value("debian-maintainer-mail").toString();
+    }
+
     return def;
 }
 
@@ -146,7 +156,7 @@ void    extractInfosFromProFile(ProjectDefinition& def)
 {
     const QRegularExpression qtDef("^QT\\s*\\+=");
     const QRegularExpression blankExp("\\s+");
-    const QRegularExpression targetDef("TARGET\\s*=\\s*(\\w+)");
+    const QRegularExpression targetDef("TARGET\\s*=\\s*([a-zA-Z-]+)");
     println(def.proFile);
     if (QFileInfo::exists(def.proFile) == false)
     {
@@ -201,6 +211,7 @@ void    findVersion(ProjectDefinition& proj)
     if (proj.version.type == VersionType::Forced)
     {
         println("Project version is user specified : " + proj.version.forcedVersion);
+        proj.version.simpleVersion = proj.version.forcedVersion;
         return ;
     }
     if (proj.version.type == VersionType::Git || proj.version.type == VersionType::Auto)
@@ -237,7 +248,9 @@ void    findVersion(ProjectDefinition& proj)
             if (ok)
             {
                 proj.version.gitVersionString = run.getStdout().trimmed();
-                //proj.version.simpleVersion = proj.version.gitVersionString;
+                proj.version.simpleVersion = proj.version.gitVersionString;
+                run.run("git", proj.basePath, QStringList() << "describe" << "--tags" << "--abbrev=0");
+                proj.version.gitLastTag = run.getStdout().trimmed();
             }
         }
         ok = run.run("git", proj.basePath, QStringList() << "rev-parse" << "--verify" << branchName);

@@ -159,11 +159,13 @@ void    generateDebianFiles(ProjectDefinition& proj)
     QString rules = useTemplateFile(":/debian/rules_template.tt", map);
     ruleFile.write(rules.toLocal8Bit());
     ruleFile.close();
+
+ // Control
     println("Creating control file");
     QFile controlFile(proj.basePath + "/debian/control");
     if (!controlFile.open(QIODevice::WriteOnly | QIODevice::Text))
     {
-        error_and_exit("Could not open debian/rules" + controlFile.errorString());
+        error_and_exit("Could not open debian/control" + controlFile.errorString());
     }
     map.clear();
 
@@ -222,8 +224,12 @@ void    generateDebianFiles(ProjectDefinition& proj)
     map["AUTHOR"] = proj.author;
     map["AUTHOR_MAIL"] = proj.authorMail;
     map["LICENSE_NAME"] = proj.licenseName;
+    map["DEBIAN_AUTHOR"] = proj.debianMaintainer;
+    map["DEBIAN_MAIL"] = proj.debianMaintainerMail;
     map["CURRENT_YEAR"] = QString::number(QDateTime::currentDateTime().date().year());
     map["TARGET_NAME"] = proj.targetName;
+
+    println("Creating copyright file");
     QString copyrightString = useTemplateFile(":/debian/copyright_template.tt", map);
     copyrightFile.write(copyrightString.toLocal8Bit());
     copyrightFile.close();
@@ -319,9 +325,27 @@ QString getDebianVersion(const ProjectDefinition& proj)
 {
     QString debVersion;
     QString version = proj.version.simpleVersion;
-    if (proj.version.type == VersionType::Git && proj.version.gitTag.isEmpty())
+    if (proj.version.type == VersionType::Git && proj.version.gitLastTag.isEmpty())
     {
         return "1+git" + proj.version.gitVersionString;
+    }
+    // When we get an stuff like tag-nbcommit-commit
+    if (proj.version.type == VersionType::Git &&
+        proj.version.gitLastTag.isEmpty() == false)
+    {
+        QString lastTag = proj.version.gitLastTag;
+        QString gitAbriev = proj.version.gitVersionString;
+        gitAbriev.replace(lastTag, "");
+        if (lastTag.startsWith('v'))
+        {
+            lastTag.remove(0, 1);
+        }
+        if (QVersionNumber::fromString(lastTag).isNull() == false)
+        {
+            return lastTag + gitAbriev;
+        } else {
+            return "1-" + lastTag + gitAbriev;
+        }
     }
     QVersionNumber tmp = QVersionNumber::fromString(version);
     if (tmp.isNull())

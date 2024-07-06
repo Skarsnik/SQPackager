@@ -50,7 +50,12 @@ bool Runner::run(QString command, QString workingDir, QStringList args)
 bool Runner::runWithOut(QString command, QStringList args, QString workingDir)
 {
     if (m_verbose)
-        println(command + " " + args.join(" "));
+    {
+        QString workingDirString;
+        if (workingDir.isEmpty() == false)
+            workingDirString = "{" + workingDir + "} ";
+        println(workingDirString + command + " " + args.join(" "));
+    }
     if (m_dummy)
         return true;
     QString oldWD = m_process.workingDirectory();

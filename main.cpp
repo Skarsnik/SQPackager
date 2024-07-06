@@ -10,6 +10,7 @@
 #include <sqpackager.h>
 #include <basestuff.h>
 #include <desktoprc.h>
+#include <print.h>
 
 QTextStream cout(stdout);
 
@@ -83,6 +84,10 @@ int main(int argc, char *argv[])
         else
             error_and_exit("The project description is not suited to generate a .desktop file. Please follow the previously error");
         setDesktopRC(project);
+        if (QFileInfo::exists(project.targetName + ".1") || QFileInfo::exists(project.targetName + "manpage.1"))
+            ;
+        else
+            generateManPage(project);
         generateUnixInstallFile(project);
         //exit(0);
     }
@@ -121,7 +126,10 @@ int main(int argc, char *argv[])
             error_and_exit("The project definition is not suited to generate debian packaging files");
         }
         setDesktopRC(project);
-        generateManPage(project);
+        if (QFileInfo::exists(project.targetName + ".1") || QFileInfo::exists(project.targetName + "manpage.1"))
+            ;
+        else
+            generateManPage(project);
         generateUnixInstallFile(project);
         generateDebianFiles(project);
     }

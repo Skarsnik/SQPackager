@@ -22,6 +22,10 @@ const QStringList defaultCategories = {
     "Utility"
 };
 
+const QList<int> hicolorIconSize = {
+    8, 16, 22, 24, 32, 36, 42, 48, 64, 72, 96, 128, 192, 256, 512
+};
+
 bool    checkDesktopRC(const ProjectDefinition& proj, bool bypass)
 {
     if (!bypass &&
@@ -70,6 +74,7 @@ bool    checkDesktopRC(const ProjectDefinition& proj, bool bypass)
 
 void    setDesktopRC(ProjectDefinition& proj)
 {
+    println("Setting up .desktop");
     if (!proj.desktopFile.isEmpty())
     {
         if (proj.desktopIcon.isEmpty())
@@ -138,4 +143,18 @@ void    setIconSize(ProjectDefinition& proj)
         plop.append(QString::fromLocal8Bit(p));
     }
     proj.iconSize = QSize(plop[2].split("x")[0].toInt(), plop[2].split("x")[1].toInt());
+    if (proj.iconSize.width() != proj.iconSize.height())
+    {
+        error_and_exit("\tIcon must be square (the height and width must be equals");
+    }
+    if (hicolorIconSize.contains(proj.iconSize.width()) == false)
+    {
+        QString sizeStr;
+        for (int size : hicolorIconSize)
+        {
+            sizeStr += QString("%1x%1 ").arg(size);
+        }
+        error_and_exit("\tDefault hicolor theme only support these size :" + sizeStr);
+    }
+
 }

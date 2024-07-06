@@ -1,6 +1,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QDateTime>
+#include <QDir>
 #include "projectdefinition.h"
 #include "basestuff.h"
 #include "print.h"
@@ -13,6 +14,7 @@ void    generateUnixInstallFile(const ProjectDefinition& project)
     QMap<QString, QString> mapping;
 
     mapping["SQPACKAGER_VERSION"] = "0.1";
+    mapping["PRO_FILE"] = project.proFile;
     mapping["PROJECT_TARGET"] = project.targetName;
     mapping["APPLICATION_NAME"] = project.unixNormalizedName;
     mapping["DESKTOP_FILE"] = project.desktopFile;
