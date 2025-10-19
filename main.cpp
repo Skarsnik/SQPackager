@@ -50,6 +50,8 @@ int main(int argc, char *argv[])
     extractInfosFromProFile(project);
     findLicense(project);
     findReadme(project);
+    if (project.qtModules.contains("quick"))
+        project.qmlProject = true;
     if (parser.isSet("version"))
     {
         project.version.type = VersionType::Forced;

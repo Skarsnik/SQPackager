@@ -350,9 +350,19 @@ void    createRelease(const ProjectDefinition& proj, const WindowsBuild& build)
 void    deployQt(Runner& runner, const ProjectDefinition& project, WindowsBuild& build)
 {
     QStringList args;
-    args << "--no-translations" << "--no-system-d3d-compiler" << "--no-opengl" << "--release";
+    args << "--no-translations" << "--no-system-d3d-compiler" << "--release" << "--compiler-runtime";
     if (build.qt.version.majorVersion() == 5)
+    {
         args << "--no-webkit" << "--no-webkit2";
+    }
+    if (project.qmlProject == false)
+    {
+        args << "--no-opengl";
+    }
+    if (project.qmlProject)
+    {
+        args << "--qmldir" << project.basePath + "/" + project.qmlDir;
+    }
     QDir deployDir(build.deployFullPath);
     QString firstExe;
     for (const QFileInfo& fi : deployDir.entryInfoList())
@@ -372,6 +382,39 @@ void    deployQt(Runner& runner, const ProjectDefinition& project, WindowsBuild&
     QFile::remove(build.deployFullPath + "/" + "libGLESV2.dll");
     QFile::remove(build.deployFullPath + "/" + "vc_redist.x64.exe");
     QFile::remove(build.deployFullPath + "/" + "vc_redist.x86.exe");
+    /* windeployqt.exe is super stupid with QML
+     * It will assume your project use evevry Qt module available in QML
+    */
+    if (project.qmlProject)
+    {
+        QDir(build.deployFullPath + "/qmltooling").removeRecursively();
+        if (project.qtModules.contains("pdf") == false)
+        {
+            QFile::remove(build.deployFullPath + "/" + "Qt6PdfQuick.dll");
+            QFile::remove(build.deployFullPath + "/" + "Qt6Pdf.dll");
+            QDir(build.deployFullPath + "/QtQuick/Pdf").removeRecursively();
+        }
+        if (project.qtModules.contains("3dcore") == false)
+        {
+            QFile::remove(build.deployFullPath + "/" + "Qt63DAnimation.dll");
+            QFile::remove(build.deployFullPath + "/" + "Qt63DCore.dll");
+            QFile::remove(build.deployFullPath + "/" + "Qt63DExtras.dll");
+            QFile::remove(build.deployFullPath + "/" + "Qt63DInput.dll");
+            QFile::remove(build.deployFullPath + "/" + "Qt63DLogic.dll");
+            QFile::remove(build.deployFullPath + "/" + "Qt63DQuickScene2D.dll");
+            QFile::remove(build.deployFullPath + "/" + "Qt63DRender.dll");
+            QDir(build.deployFullPath + "/QtQuick/Scene3D").removeRecursively();
+            QDir(build.deployFullPath + "/geometryloaders").removeRecursively();
+        }
+        if (project.qtModules.contains("sql") == false)
+        {
+            QFile::remove(build.deployFullPath + "/" + "Qt6Sql.dll");
+        }
+        if (project.qtModules.contains("multimedia") == false && project.qtModules.contains("texttospeech") == false)
+        {
+            QFile::remove(build.deployFullPath + "/" + "Qt6Multimedia.dll");
+        }
+    }
 }
 
 void    generateInstaller(const ProjectDefinition& project, const WindowsBuild& build)
@@ -555,6 +598,10 @@ void    buildProject(Runner& runner, const ProjectDefinition& project, WindowsBu
     println("Building project in " + buildPath);
     QStringList qmakeOptions;
     qmakeOptions << project.proFile << "-spec" << "win32-msvc" << "CONFIG+=release no_batch";
+    if (project.qmlProject)
+    {
+        qmakeOptions << "CONFIG+=qtquickcompiler";
+    }
     QStringList sqprojectOptions;
     if (buildInfo.standalone)
     {
@@ -653,9 +700,10 @@ void findQtVersion()
                 qtDir = QDir(QProcessEnvironment::systemEnvironment().value("Qt5_DIR") + "/../../");
             }
         }
+        println("Found Qt version(s) in : " + qtDir.absolutePath());
         qtDir.setFilter(QDir::Dirs | QDir::NoDotAndDotDot);
         const QRegularExpression RegVers("\\d\\.\\d");
-        auto qtFiles = qtDir.entryInfoList();
+        const auto qtFiles = qtDir.entryInfoList();
         for (auto qtFile : qtFiles)
         {
             if (RegVers.match(qtFile.fileName()).hasMatch())

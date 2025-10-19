@@ -51,6 +51,7 @@ struct ProjectDefinition
     QString     description;
     QString     author;
     QString     authorMail;
+    bool        qmlProject;
 
     QStringList qtModules;
     QString     icon;
@@ -64,6 +65,7 @@ struct ProjectDefinition
     QString     debianMaintainer;
     QString     debianMaintainerMail;
     QString     debianPackageName;
+    QString     qmlDir;
     QString     proFile;
     ProjectVersion     version;
     QString     readmeFile;

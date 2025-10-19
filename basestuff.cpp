@@ -100,6 +100,14 @@ ProjectDefinition    getProjectDescription(QString path)
         def.translationDir = obj["translations-dir"].toString();
     if (obj.contains("files"))
         handleFiles(def, obj);
+    def.qmlProject = false;
+    if (obj.contains("qml"))
+        def.qmlProject = true;
+    if (obj.contains("qml-dir"))
+    {
+        def.qmlDir = obj.value("qml-dir").toString();
+        def.qmlProject = true;
+    }
 
     // Unix DESKTOP stuff
     if (obj.contains("desktop-file"))
@@ -190,7 +198,7 @@ void    extractInfosFromProFile(ProjectDefinition& def)
             QString stringDef = line.split("+=").at(1);
             println(stringDef);
             QStringList qtmodule = stringDef.split(blankExp, Qt::SkipEmptyParts);
-            def.qtModules = qtmodule;
+            def.qtModules.append(qtmodule);
         }
         if (targetDef.match(line).hasMatch() && def.targetName.isEmpty())
         {
