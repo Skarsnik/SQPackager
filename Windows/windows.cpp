@@ -691,15 +691,16 @@ void findQtVersion()
             qtDir = QDir("C:\\Qt");
         else
         {
+            // This point to the cmake dir eg: D:\a\Button-Mash\Qt\5.15.2\msvc2019_64\lib\cmake
             if (QProcessEnvironment::systemEnvironment().contains("Qt6_DIR"))
             {
                 println("Using Qt6_DIR env variable : " + QProcessEnvironment::systemEnvironment().value("Qt6_DIR"));
-                qtDir = QDir(QProcessEnvironment::systemEnvironment().value("Qt6_DIR") + "/../../");
+                qtDir = QDir(QProcessEnvironment::systemEnvironment().value("Qt6_DIR") + "/../../../");
             }
             if (QProcessEnvironment::systemEnvironment().contains("Qt5_DIR"))
             {
                 println("Using Qt5_DIR env variable : " + QProcessEnvironment::systemEnvironment().value("Qt5_DIR"));
-                qtDir = QDir(QProcessEnvironment::systemEnvironment().value("Qt5_DIR") + "/../../");
+                qtDir = QDir(QProcessEnvironment::systemEnvironment().value("Qt5_DIR") + "/../../../");
             }
         }
         println("Found Qt version(s) in : " + qtDir.absolutePath());
